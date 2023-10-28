@@ -5,6 +5,19 @@ application:
     colored: false
     tags:
 
+  database:
+    host: db.example.ru
+    user: db
+    password: example
+    database: example
+
+  mail:
+    password: example
+    out: "smtp.yandex.ru"
+    in: "imap.yandex.ru"
+    port: 25
+    username: "example@example.store"
+
   server:
     address: :3333
 
