@@ -1,0 +1,74 @@
+{{define "login"}}
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://unpkg.com/@vkontakte/superappkit@1.57.0/dist/index-umd.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+</head>
+<body class="text-center" style="height: 300px;">
+    <main role="main" class="container" style="height: 300px;">
+        <div class="h-25"></div>
+        <div id="login"></div>
+    </main>
+</body>
+<script>
+    const { Connect, Config, ConnectEvents } = window.SuperAppKit;
+    Config.init({
+        appId: 51694718 // идентификатор приложе @todo в настройки
+    });
+
+    const oneTapButton = Connect.buttonOneTapAuth({
+        // Обязательный параметр в который нужно добавить обработчик событий приходящих из SDK
+        callback: function(e) {
+            const type = e.type;
+            if (!type) {
+                return false;
+            }
+
+            switch (type) {
+                case ConnectEvents.OneTapAuthEventsSDK.LOGIN_SUCCESS: // = 'VKSDKOneTapAuthLoginSuccess'
+                    console.log(e);
+
+                    return false
+
+                // Для этих событий нужно открыть полноценный VK ID чтобы
+                // пользователь дорегистрировался или подтвердил телефон
+
+                case ConnectEvents.OneTapAuthEventsSDK.FULL_AUTH_NEEDED: //  = 'VKSDKOneTapAuthFullAuthNeeded'
+                case ConnectEvents.OneTapAuthEventsSDK.PHONE_VALIDATION_NEEDED: // = 'VKSDKOneTapAuthPhoneValidationNeeded'
+                case ConnectEvents.ButtonOneTapAuthEventsSDK.SHOW_LOGIN: // = 'VKSDKButtonOneTapAuthShowLogin'
+                    return Connect.redirectAuth({
+                        url: 'https://billing.getapp.store/v1/users/vk/auth', // url - строка с url, на который будет произведён редирект после авторизации.
+                        state: '{{.Product}}'
+                    }); // state - состояние вашего приложение или любая произвольная строка, которая будет добавлена к url после авторизации.
+
+                // Пользователь перешел по кнопке "Войти другим способом"
+                case ConnectEvents.ButtonOneTapAuthEventsSDK.SHOW_LOGIN_OPTIONS: // = 'VKSDKButtonOneTapAuthShowLoginOptions'
+                    // Параметр screen: phone позволяет сразу открыть окно ввода телефона в VK ID
+                    // Параметр url: ссылка для перехода после авторизации. Должен иметь https схему. Обязательный параметр.
+                    return Connect.redirectAuth({
+                        screen: 'phone',
+                        url: 'https://billing.getapp.store/v1/users/vk/auth',
+                        state: '{{.Product}}'
+                    });
+            }
+
+            return false;
+        },
+
+        // Не обязательный параметр с настройками отображения OneTap
+        options: {
+            showAlternativeLogin: true, // Отображение кнопки "Войти другим способом"
+            displayMode: 'default', // Режим отображения кнопки 'default' | 'name_phone' | 'phone_name'
+            buttonStyles: {
+                borderRadius: 8, // Радиус скругления кнопок
+            }
+        },
+    });
+
+    // Получить iframe можно с помощью метода getFrame()
+    document.getElementById("login").appendChild(oneTapButton.getFrame());
+</script>
+</html>
+
+{{end}}

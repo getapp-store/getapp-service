@@ -1,0 +1,29 @@
+{{define "title"}}{{.Title}}{{end}}
+
+{{define "main"}}
+    <div class="h-25"></div>
+    <h2>{{.Title}}</h2>
+    <p>Заказ # {{.Payment}}</p>
+    <p class="h3">{{.Amount}}</p>
+
+    <div class="row justify-content-center h-200">
+
+        <form method="POST" action="https://yoomoney.ru/quickpay/confirm">
+            <input type="hidden" name="receiver" value="{{.Wallet}}"/>
+            <input type="hidden" name="label" value="{{.Label}}"/>
+            <input type="hidden" name="quickpay-form" value="button"/>
+            <input type="hidden" name="sum" value="{{.Amount}}" data-type="number"/>
+            <input type="hidden" name="paymentType" value="AC">
+            <input type="hidden" name="successURL"
+                   value="https://service.getapp.store/v1/billing/payments/success?payment={{.Payment}}&status={{.Status}}&product={{.Product}}"/>
+
+            <div style="height: 50px;">
+            </div>
+
+            <div class="form-row">
+                <button type="submit" class="btn btn-primary">Купить</button>
+            </div>
+        </form>
+
+    </div>
+{{end}}

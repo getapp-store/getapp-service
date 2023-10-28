@@ -1,0 +1,57 @@
+## boosty
+
+### current stat
+
+GET https://api.boosty.to/v1/blog/stat/getapp/current
+Authorization: Bearer {{boosty}}
+
+### all stat
+
+GET https://api.boosty.to/v1/blog/getapp/stat/data?last_time=1695081599&limit=30
+Authorization: Bearer {{boosty}}
+
+### blog info
+
+GET https://api.boosty.to/v1/blog/getapp
+Authorization: Bearer {{boosty}}
+
+### blog target
+
+GET https://api.boosty.to/v1/target/getapp/?show_deleted=true
+Authorization: Bearer {{boosty}}
+
+### subscription
+
+GET https://api.boosty.to/v1/blog/getapp/subscription/level/1122632?
+Authorization: Bearer {{boosty}}
+
+
+### subscriptions
+
+GET https://api.boosty.to/v1/blog/getapp/subscription_level/?show_free_level=true
+Authorization: Bearer {{boosty}}
+
+### subscribers
+
+GET https://api.boosty.to/v1/blog/getapp/subscribers?sort_by=on_time&offset=0&limit=10&order=gt
+Authorization: Bearer {{boosty}}
+
+
+## getapp
+
+### blog
+GET {{host}}/v1/boosty/1/blog
+Accept: application/json
+Content-Type: application/json
+
+
+### subscriptions
+GET {{host}}/v1/boosty/1/subscriptions
+Accept: application/json
+Content-Type: application/json
+
+
+### subscriber
+GET {{host}}/v1/boosty/1/subscriber/23651380
+Accept: application/json
+Content-Type: application/json

@@ -1,0 +1,9 @@
+### item
+GET {{host}}/v1/warehouse/3/item/radio_525
+Accept: application/json
+Content-Type: application/json
+
+### search
+GET {{host}}/v1/warehouse/3/search?page=0&size=50&query=rock
+Accept: application/json
+Content-Type: application/json

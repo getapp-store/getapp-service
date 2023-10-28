@@ -1,0 +1,8 @@
+.idea
+build/
+configs/prod.yml
+configs/dev.yml
+deploy/*
+http/http-client.env.json
+http/private.http
+docs/*

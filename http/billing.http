@@ -1,0 +1,22 @@
+### get list of all product items
+GET {{host}}/v1/billing/1/products
+Accept: application/json
+Content-Type: application/json
+
+
+### purchase
+
+GET {{host}}/v1/billing/1/payments/purchase?product=3
+X-User-Key: Bearer {{user}}
+
+
+### restore
+
+GET {{host}}/v1/billing/1/payments/restore
+X-User-Key: Bearer {{user}}
+
+### payment
+
+GET {{host}}/v1/billing/1/payments/65
+X-User-Key: Bearer {{user}}
+

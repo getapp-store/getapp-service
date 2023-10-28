@@ -1,0 +1,38 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  release:
+    cmds:
+      - echo "{{.GREETING}}"
+
+  build:
+    cmds:
+      - mkdir -p build/bin/
+      - docker run -v `pwd`/:/go/src/getapp -w /go/src/getapp -e "VERSION=0.0.1" -i golang:1.21.1 /bin/sh -c "GOOS=linux GOARCH=amd64 go build -v -o build/bin/getapp -ldflags '-v -w -s -linkmode auto -extldflags \"-static\" -X main.Version=0.0.1' ./cmd/getapp"
+
+  deploy:
+    deps: [build]
+    cmds:
+      - sup production stop
+      - scp ./build/bin/getapp getapp.store:/opt/getapp/bin/
+      - scp ./configs/prod.yml getapp.store:/opt/getapp/configs/
+      - scp ./configs/base.yml getapp.store:/opt/getapp/configs/
+      - scp ./templates/users/choose.gohtml getapp.store:/opt/getapp/templates/users/
+      - scp ./templates/users/mail/login.gohtml getapp.store:/opt/getapp/templates/users/mail/
+      - scp ./templates/users/mail/send.gohtml getapp.store:/opt/getapp/templates/users/mail/
+      - scp ./templates/users/mail/success.gohtml getapp.store:/opt/getapp/templates/users/mail/
+      - scp ./templates/users/vkontakte/login.gohtml getapp.store:/opt/getapp/templates/users/vkontakte/
+      - scp ./templates/billing/base.gohtml getapp.store:/opt/getapp/templates/billing/
+      - scp ./templates/billing/purchase.gohtml getapp.store:/opt/getapp/templates/billing/
+      - scp ./templates/billing/success.gohtml getapp.store:/opt/getapp/templates/billing/
+      - sup production start

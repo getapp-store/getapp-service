@@ -1,0 +1,18 @@
+application:
+  logger:
+    level: info
+    encoding: json
+    colored: false
+    tags:
+
+  server:
+    address: :3333
+
+modules:
+  billing:
+    active: true
+  boosty:
+    active: true
+  admin:
+    username: admin
+    password: admin

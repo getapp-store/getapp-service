@@ -1,0 +1,10 @@
+### languages
+GET {{host}}/v1/lokalize/1/languages
+Accept: application/json
+Content-Type: application/json
+
+
+### phases
+GET {{host}}/v1/lokalize/1/languages/en_US.json
+Accept: application/json
+Content-Type: application/json

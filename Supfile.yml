@@ -1,0 +1,11 @@
+networks:
+  production:
+    hosts:
+      - root@getapp.store
+
+commands:
+  stop:
+    run: systemctl stop service.getapp.service
+
+  start:
+    run: systemctl start service.getapp.service
