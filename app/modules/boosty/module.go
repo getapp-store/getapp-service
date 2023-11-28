@@ -2,6 +2,7 @@ package boosty
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -16,6 +17,8 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"kovardin.ru/projects/boosty"
+	"kovardin.ru/projects/boosty/auth"
+	"kovardin.ru/projects/boosty/request"
 
 	"ru/kovardin/getapp/app/modules"
 	applications "ru/kovardin/getapp/app/modules/applications/models"
@@ -163,10 +166,43 @@ func Configure(pb *presets.Builder, db *database.Database, module *Module, serve
 func Command(setup func(*cli.Context, ...fx.Option) *fx.App) *cli.Command {
 	return &cli.Command{
 		Name: "boosty",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "token",
+				Required: true,
+			},
+			&cli.StringFlag{
+				Name:     "blog",
+				Required: true,
+			},
+		},
 		Action: func(c *cli.Context) error {
 			setup(c, fx.Invoke(func(log *logger.Logger) {
 				// create api
-				b := boosty.New("getapp", "5d4b7d8701b0de08c093c431b446dddf050fe13bc340643385391d4f631067e2")
+				token := auth.Info{}
+				if err := json.Unmarshal([]byte(c.String("token")), &token); err != nil {
+					log.Error("error on parse boosty token", zap.Error(err))
+					return
+				}
+
+				a, err := auth.New(
+					auth.WithInfo(auth.Info{}),
+					auth.WithInfoUpdateCallback(func(info auth.Info) {
+						// todo
+					}),
+				)
+
+				rq, err := request.New(request.WithAuth(a))
+				if err != nil {
+					log.Error("error on prepare boosty lib request", zap.Error(err))
+					return
+				}
+
+				b, err := boosty.New(c.String("blog"), boosty.WithRequest(rq))
+				if err != nil {
+					log.Error("error on prepare boosty lib", zap.Error(err))
+					return
+				}
 
 				fmt.Println("subscriptions:")
 				ss, err := b.Subscriptions(0, 2)

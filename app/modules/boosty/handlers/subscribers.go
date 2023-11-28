@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"encoding/json"
+	"kovardin.ru/projects/boosty/auth"
+	"kovardin.ru/projects/boosty/request"
 	"net/http"
 	"strconv"
 
@@ -95,16 +98,50 @@ func (s *Subscribers) Subscriber(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b := boosty.New(blog.Name, blog.Token)
+	token := auth.Info{}
+	if err := json.Unmarshal([]byte(blog.Token), &token); err != nil {
+		s.log.Error("error on parse boosty token", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	stats, err := b.Stats()
+	a, err := auth.New(
+		auth.WithInfo(auth.Info{}),
+		auth.WithInfoUpdateCallback(func(info auth.Info) {
+			data, err := json.Marshal(info)
+			if err != nil {
+				s.log.Error("error on marshal data to info struct", zap.Error(err))
+			}
+
+			blog.Token = string(data)
+			if err := s.blogs.Save(&blog); err != nil {
+				s.log.Error("error on save boosty info struct to blog", zap.Error(err))
+			}
+		}),
+	)
+
+	rq, err := request.New(request.WithAuth(a))
+	if err != nil {
+		s.log.Error("error on prepare boosty lib request", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	b, err := boosty.New(blog.Name, boosty.WithRequest(rq))
+	if err != nil {
+		s.log.Error("error on prepare boosty lib", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	current, err := b.Current()
 	if err != nil {
 		s.log.Error("error on load blog stats", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	subscribers, err := b.Subscribers(0, stats.PaidCount)
+	subscribers, err := b.Subscribers(0, current.PaidCount)
 	if err != nil {
 		s.log.Error("error on load blog subscribers", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)

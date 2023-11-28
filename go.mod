@@ -24,7 +24,7 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/gorm v1.25.2
-	kovardin.ru/projects/boosty v0.0.0-20231023195544-40e46bea5d30
+	kovardin.ru/projects/boosty v0.0.0-20231128195628-bfbd0c2313ee
 )
 
 require (
