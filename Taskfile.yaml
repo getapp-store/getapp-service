@@ -15,6 +15,11 @@ tasks:
     cmds:
       - echo "{{.GREETING}}"
 
+  macos:
+    cmds:
+      - mkdir -p build/mac/
+      - go build -v -o build/mac/getapp ./cmd/getapp
+
   build:
     cmds:
       - mkdir -p build/bin/

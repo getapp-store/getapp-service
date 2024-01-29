@@ -58,7 +58,6 @@ func (u *Uploader) Start() {
 		//	u.process()
 		//}
 	}()
-
 }
 
 func (u *Uploader) Stop() {

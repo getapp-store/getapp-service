@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"kovardin.ru/projects/boosty/auth"
 	"kovardin.ru/projects/boosty/request"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -141,21 +143,33 @@ func (s *Subscribers) Subscriber(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subscribers, err := b.Subscribers(0, current.PaidCount)
+	v := url.Values{}
+	v.Add("offset", "0")
+	v.Add("limit", fmt.Sprintf("%d", current.PaidCount))
+	v.Add("order", "gt")
+	v.Add("sort_by", "on_time")
+
+	subscribers, err := b.Subscribers(v)
 	if err != nil {
 		s.log.Error("error on load blog subscribers", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	subscriptions, err := b.Subscriptions(0, 20)
+	v = url.Values{}
+	v.Add("offset", "0")
+	v.Add("limit", "20")
+	v.Add("order", "gt")
+	v.Add("sort_by", "on_time")
+
+	subscriptions, err := b.Subscriptions(v)
 	if err != nil {
 		s.log.Error("error on load blog subscriptions", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	for _, subscriber := range subscribers {
+	for _, subscriber := range subscribers.Data {
 		internalSubscriber, err := s.subscribers.First(database.Condition{
 			In: map[string]any{
 				"external": subscriber.ID,
@@ -173,7 +187,7 @@ func (s *Subscribers) Subscriber(w http.ResponseWriter, r *http.Request) {
 		internalSubscriber.BlogID = blog.ID
 		internalSubscriber.Amount = subscriber.Price * 100
 
-		for _, subscription := range subscriptions {
+		for _, subscription := range subscriptions.Data {
 			if subscription.ID == subscriber.Level.ID {
 				// update subscription
 				internalSubscription, err := s.subscriptions.First(database.Condition{

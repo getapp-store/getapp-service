@@ -1,0 +1,69 @@
+### networks for application /1/ - application id
+GET {{host}}/v1/mediation/networks/1/
+Accept: application/json
+Content-Type: application/json
+
+
+### placement for application /1/ - placement id
+GET {{host}}/v1/mediation/placements/1/
+Accept: application/json
+Content-Type: application/json
+
+
+### auction /1/ - placement id - mytarget
+POST {{host}}/v1/mediation/auction/1/bid
+Accept: application/json
+Content-Type: application/json
+
+{
+  "unit": "1485710",
+  "user": {
+    "id": "1"
+  }
+}
+
+
+
+### auction /1/ - placement id - yandex
+POST {{host}}/v1/mediation/auction/1/bid
+Accept: application/json
+Content-Type: application/json
+
+{
+  "unit": "R-M-2768512-2",
+  "user": {
+    "id": "1"
+  }
+}
+
+
+
+### auction /1/ - placement id - cpa
+POST {{host}}/v1/mediation/auction/1/bid
+Accept: application/json
+Content-Type: application/json
+
+{
+  "unit": "example",
+  "user": {
+    "id": "1"
+  }
+}
+
+### stats
+#GET https://target.my.com/api/v2/statistics/geo/pads/hour.json?id=1812360&date_from=2024-01-13&date_to=2024-01-15
+GET https://target.my.com/api/v2/statistics/geo/pads/hour.json?id=2094672&date_from=2024-01-21&date_to=2024-01-23
+Authorization: Bearer PCzTTC6tCAB5k3acdjwci3DJzW5iAuzPg8yBY7kwfDpXvzDKqX8OLVg0oiSGSDcsQqO2IK7KGpDS8DsWOP88ADemh8QK8AcuLWliIa2SK1GnJCbHjrvC9NzzWz7mMNBu4YVsEQ29bmonDMqP64FJj9vTa0VJtxTL178ZhZXW3MOS1v11pIyNPL5Qt2dhyzjDMxRvX45MDxptLBsKnVVfAJyfyU69bjkKtGiKDSNl8vFa3UJL2JnyiQl
+
+###
+### {"data":"{\"currency\":\"RUB\",\"revenueUSD\":\"0.002431112\",\"precision\":\"estimated\",\"revenue\":\"0.213076492\",\"requestId\":\"1705439252722245-1837937026488645841800320-production-app-host-vla-pcode-225\",\"blockId\":\"R-M-2768512-2\",\"adType\":\"interstitial\",\"ad_unit_id\":\"R-M-2768512-2\",\"network\":{\"name\":\"Yandex\",\"adapter\":\"Yandex\",\"ad_unit_id\":\"R-M-2768512-2\"}}","price":150.0,"unit":"R-M-2768512-2"}
+POST {{host}}/v1/mediation/impressions/1/impression
+Accept: application/json
+Content-Type: application/json
+
+{
+  "data":"",
+  "price":20.1,
+  "unit":"example"
+}
+

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"ru/kovardin/getapp/app/utils/admin/components"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/qor5/admin/presets"
@@ -74,6 +75,17 @@ func Configure(pb *presets.Builder, db *database.Database, module *Module, serve
 				SQLCondition: `application_id %s ?`,
 			},
 		}
+	})
+	products.Editing().
+		Field("ApplicationID").ComponentFunc(func(obj interface{}, field *presets.FieldContext, ctx *web.EventContext) htmlgo.HTMLComponent {
+		c := obj.(*models.Product)
+		return web.Portal(components.Dropdown[applications.Application](
+			db.DB(),
+			c.ApplicationID,
+			"Application",
+			"Name",
+			"ApplicationID",
+		)).Name("applications")
 	})
 
 	payments := pb.Model(&models.Payment{})

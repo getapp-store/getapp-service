@@ -18,13 +18,14 @@ require (
 	github.com/theplant/htmlgo v1.0.3
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/wcharczuk/go-chart/v2 v2.1.0
+	go.dedis.ch/protobuf v1.0.11
 	go.uber.org/config v1.4.0
 	go.uber.org/fx v1.20.0
 	go.uber.org/zap v1.24.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/gorm v1.25.2
-	kovardin.ru/projects/boosty v0.0.0-20231128195628-bfbd0c2313ee
+	kovardin.ru/projects/boosty v0.0.0-20240115212106-b3719f5eb8f1
 )
 
 require (
