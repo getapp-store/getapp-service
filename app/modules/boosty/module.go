@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
+	"ru/kovardin/getapp/app/utils/admin/components"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -72,6 +74,18 @@ func Configure(pb *presets.Builder, db *database.Database, module *Module, serve
 				SQLCondition: `application_id %s ?`,
 			},
 		}
+	})
+
+	blogs.Editing().
+		Field("ApplicationID").ComponentFunc(func(obj interface{}, field *presets.FieldContext, ctx *web.EventContext) htmlgo.HTMLComponent {
+		c := obj.(*models.Blog)
+		return web.Portal(components.Dropdown[applications.Application](
+			db.DB(),
+			c.ApplicationID,
+			"Application",
+			"Name",
+			"ApplicationID",
+		)).Name("applications")
 	})
 
 	subscriptions := pb.Model(&models.Subscription{})
@@ -204,30 +218,42 @@ func Command(setup func(*cli.Context, ...fx.Option) *fx.App) *cli.Command {
 					return
 				}
 
+				v := url.Values{}
+				v.Add("offset", "0")
+				v.Add("limit", "2")
+				v.Add("order", "gt")
+				v.Add("sort_by", "on_time")
+
 				fmt.Println("subscriptions:")
-				ss, err := b.Subscriptions(0, 2)
+				ss, err := b.Subscriptions(v)
 				if err != nil {
 					log.Error("error on get subscriptions", zap.Error(err))
 					os.Exit(1)
 				}
 
 				t := table.NewWriter()
-				for _, s := range ss {
+				for _, s := range ss.Data {
 					t.AppendRow(table.Row{s.ID, s.Name, s.Price})
 				}
 				fmt.Println(t.Render())
 
 				fmt.Println()
 
+				v = url.Values{}
+				v.Add("offset", "0")
+				v.Add("limit", "2")
+				v.Add("order", "gt")
+				v.Add("sort_by", "on_time")
+
 				fmt.Println("subscribers:")
-				uu, err := b.Subscribers(0, 2)
+				uu, err := b.Subscribers(v)
 				if err != nil {
 					log.Error("error on get subscribers", zap.Error(err))
 					os.Exit(1)
 				}
 
 				t = table.NewWriter()
-				for _, s := range uu {
+				for _, s := range uu.Data {
 					t.AppendRow(table.Row{s.ID, s.Name, s.Email})
 				}
 				fmt.Println(t.Render())

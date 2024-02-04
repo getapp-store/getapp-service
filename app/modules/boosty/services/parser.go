@@ -2,9 +2,11 @@ package services
 
 import (
 	"encoding/json"
+	"fmt"
 	"kovardin.ru/projects/boosty/auth"
 	"kovardin.ru/projects/boosty/request"
 	"net/http"
+	"net/url"
 	"time"
 
 	"go.uber.org/zap"
@@ -98,15 +100,21 @@ func (p *Parser) process(b models.Blog) {
 		return
 	}
 
+	v := url.Values{}
+	v.Add("offset", "0")
+	v.Add("limit", "20")
+	v.Add("order", "gt")
+	v.Add("sort_by", "on_time")
+
 	// load subscriptions
-	subscriptions, err := api.Subscriptions(0, 20)
+	subscriptions, err := api.Subscriptions(v)
 	if err != nil {
 		p.log.Error("error on fetch subscriptions", zap.String("blog", b.Name), zap.Error(err))
 		return
 	}
 
 	// save to db
-	for _, s := range subscriptions {
+	for _, s := range subscriptions.Data {
 		// check if exist
 
 		model, err := p.subscriptions.First(database.Condition{
@@ -148,15 +156,21 @@ func (p *Parser) process(b models.Blog) {
 		return
 	}
 
+	v = url.Values{}
+	v.Add("offset", "0")
+	v.Add("limit", fmt.Sprintf("%d", current.FollowersCount+current.PaidCount))
+	v.Add("order", "gt")
+	v.Add("sort_by", "on_time")
+
 	// fetch subscribers
-	subscribers, err := api.Subscribers(0, current.FollowersCount+current.PaidCount)
+	subscribers, err := api.Subscribers(v)
 	if err != nil {
 		p.log.Error("error on fetch subscribers", zap.String("blog", b.Name), zap.Error(err))
 		return
 	}
 
 	// save to db
-	for _, s := range subscribers {
+	for _, s := range subscribers.Data {
 		model, err := p.subscribers.First(database.Condition{
 			In: map[string]any{
 				"external": s.ID,

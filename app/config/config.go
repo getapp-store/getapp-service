@@ -11,6 +11,7 @@ import (
 	admin "ru/kovardin/getapp/app/modules/admin/config"
 	billing "ru/kovardin/getapp/app/modules/billing/config"
 	boosty "ru/kovardin/getapp/app/modules/boosty/config"
+	mediation "ru/kovardin/getapp/app/modules/mediation/config"
 	http "ru/kovardin/getapp/app/servers/http/config"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"
@@ -27,9 +28,10 @@ type Application struct {
 
 type Modules struct {
 	fx.Out
-	Billing billing.Config
-	Boosty  boosty.Config
-	Admin   admin.Config
+	Billing   billing.Config
+	Boosty    boosty.Config
+	Admin     admin.Config
+	Mediation mediation.Config
 }
 
 type Config struct {

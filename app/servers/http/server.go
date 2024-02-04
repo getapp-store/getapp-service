@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 
@@ -53,7 +54,7 @@ func New(lc fx.Lifecycle, db *database.Database, config config.Config) *Server {
 func (s *Server) Start() {
 	go func() {
 		err := s.serv.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatal(err)
 		}
 	}()
@@ -64,7 +65,6 @@ func (s *Server) Stop(ctx context.Context) error {
 }
 
 func (s *Server) routing() http.Handler {
-
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)

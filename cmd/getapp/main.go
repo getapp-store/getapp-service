@@ -21,6 +21,7 @@ import (
 	_ "ru/kovardin/getapp/app/modules/deployer"
 	_ "ru/kovardin/getapp/app/modules/landings"
 	_ "ru/kovardin/getapp/app/modules/lokalize"
+	_ "ru/kovardin/getapp/app/modules/mediation"
 	_ "ru/kovardin/getapp/app/modules/tracker"
 	_ "ru/kovardin/getapp/app/modules/users"
 	_ "ru/kovardin/getapp/app/modules/warehouse"

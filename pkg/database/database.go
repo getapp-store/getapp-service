@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"gorm.io/gorm/logger"
 
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -30,6 +31,7 @@ func NewDatabase(config Config, log *zap.Logger, lc fx.Lifecycle) *Database {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
+		Logger:                                   logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
 		log.Fatal("error on open db", zap.Error(err))

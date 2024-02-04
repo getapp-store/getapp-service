@@ -99,10 +99,15 @@ func Configure(pb *presets.Builder, database *database.Database, module *Module,
 			"Languages",
 			"Phrases",
 		).Icon("translate"),
-		pb.MenuGroup("landings").SubItems(
+		pb.MenuGroup("Landings").SubItems(
 			"Landings",
 			"Pages",
 		).Icon("public"),
+		pb.MenuGroup("Mediation").SubItems(
+			"Networks",
+			"Placements",
+			"Units",
+		).Icon("ads_click"),
 		"Admins",
 		"Settings",
 	)

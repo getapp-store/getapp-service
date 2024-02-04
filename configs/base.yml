@@ -29,3 +29,5 @@ modules:
   admin:
     username: admin
     password: admin
+  mediation:
+    active: true
