@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"ru/kovardin/getapp/app/modules/mediation/rotation/bidding"
+	"ru/kovardin/getapp/app/modules/mediation/bidding"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -23,11 +23,11 @@ import (
 	"ru/kovardin/getapp/app/modules/mediation/handlers"
 	"ru/kovardin/getapp/app/modules/mediation/models"
 	"ru/kovardin/getapp/app/modules/mediation/repos"
-	"ru/kovardin/getapp/app/modules/mediation/services/parser"
-	"ru/kovardin/getapp/app/modules/mediation/services/parser/bigo"
-	"ru/kovardin/getapp/app/modules/mediation/services/parser/cpa"
-	"ru/kovardin/getapp/app/modules/mediation/services/parser/mytarget"
-	"ru/kovardin/getapp/app/modules/mediation/services/parser/yandex"
+	"ru/kovardin/getapp/app/modules/mediation/services"
+	"ru/kovardin/getapp/app/modules/mediation/services/bigo"
+	"ru/kovardin/getapp/app/modules/mediation/services/cpa"
+	"ru/kovardin/getapp/app/modules/mediation/services/mytarget"
+	"ru/kovardin/getapp/app/modules/mediation/services/yandex"
 	"ru/kovardin/getapp/app/servers/http"
 	"ru/kovardin/getapp/app/utils/admin/components"
 	"ru/kovardin/getapp/pkg/database"
@@ -52,12 +52,12 @@ func init() {
 		handlers.NewPlacements,
 		handlers.NewAuction,
 		handlers.NewImpressions,
-		// parser
+		// services
 		mytarget.New,
 		yandex.New,
 		cpa.New,
 		bigo.New,
-		parser.New,
+		services.New,
 		// rotation
 		bidding.New,
 	))
@@ -270,7 +270,7 @@ func Command(setup func(*cli.Context, ...fx.Option) *fx.App) *cli.Command {
 
 type Module struct {
 	config      config.Config
-	parser      *parser.Parser
+	services    *services.Services
 	auction     *handlers.Auction
 	placements  *handlers.Placements
 	impressions *handlers.Impressions
@@ -280,7 +280,7 @@ type Module struct {
 func New(
 	lc fx.Lifecycle,
 	config config.Config,
-	parser *parser.Parser,
+	parser *services.Services,
 	auction *handlers.Auction,
 	placements *handlers.Placements,
 	impressions *handlers.Impressions,
@@ -288,7 +288,7 @@ func New(
 ) *Module {
 	m := &Module{
 		config:      config,
-		parser:      parser,
+		services:    parser,
 		auction:     auction,
 		placements:  placements,
 		impressions: impressions,
@@ -334,12 +334,12 @@ func (m *Module) Start() {
 	if !m.config.Active {
 		return
 	}
-	m.parser.Start()
+	m.services.Start()
 }
 
 func (m *Module) Stop() {
 	if !m.config.Active {
 		return
 	}
-	m.parser.Stop()
+	m.services.Stop()
 }

@@ -7,8 +7,8 @@ import (
 	"github.com/go-chi/render"
 	"go.uber.org/zap"
 
+	"ru/kovardin/getapp/app/modules/mediation/bidding"
 	"ru/kovardin/getapp/app/modules/mediation/models"
-	"ru/kovardin/getapp/app/modules/mediation/rotation/bidding"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"
 )

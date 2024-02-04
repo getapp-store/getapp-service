@@ -15,11 +15,7 @@ import (
 	"ru/kovardin/getapp/pkg/logger"
 )
 
-const (
-	layout = "2006-01-02"
-
-	usd = 0.011
-)
+const layout = "2006-01-02"
 
 type Stats struct {
 	Items []Item `json:"items"`
@@ -68,9 +64,7 @@ type MyTarget struct {
 	period time.Duration
 	units  *database.Repository[models.Unit]
 	ecpms  *database.Repository[models.Cpm]
-
-	url   string
-	token string
+	url    string
 }
 
 func New(log *logger.Logger, units *database.Repository[models.Unit], ecpms *database.Repository[models.Cpm]) *MyTarget {
@@ -82,8 +76,7 @@ func New(log *logger.Logger, units *database.Repository[models.Unit], ecpms *dat
 		period: time.Hour * 1,
 		//period: time.Second * 10,
 
-		url:   "https://target.my.com/api/v2/statistics/geo/pads/hour.json?id=%s&date_from=%s&date_to=%s",
-		token: "PCzTTC6tCAB5k3acdjwci3DJzW5iAuzPg8yBY7kwfDpXvzDKqX8OLVg0oiSGSDcsQqO2IK7KGpDS8DsWOP88ADemh8QK8AcuLWliIa2SK1GnJCbHjrvC9NzzWz7mMNBu4YVsEQ29bmonDMqP64FJj9vTa0VJtxTL178ZhZXW3MOS1v11pIyNPL5Qt2dhyzjDMxRvX45MDxptLBsKnVVfAJyfyU69bjkKtGiKDSNl8vFa3UJL2JnyiQl",
+		url: "https://target.my.com/api/v2/statistics/geo/pads/hour.json?id=%s&date_from=%s&date_to=%s",
 	}
 }
 
@@ -138,7 +131,7 @@ func (m *MyTarget) process(model models.Unit) {
 		return
 	}
 
-	req.Header.Set("Authorization", "Bearer "+m.token)
+	req.Header.Set("Authorization", "Bearer "+model.Network.Key)
 
 	resp, err := m.client.Do(req)
 	if err != nil {
@@ -169,7 +162,7 @@ func (m *MyTarget) process(model models.Unit) {
 	}
 
 	// из mytracker все приходит в рублях, перевести cpm нужно в доллары
-	converted := cpm * usd
+	converted := cpm * networks.USD
 
 	if err := m.ecpms.Save(&models.Cpm{
 		UnitId:      model.ID,
