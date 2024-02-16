@@ -63,6 +63,14 @@ func (h *Placements) Placement(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, u := range p.Units {
+		if u.Active == false {
+			continue
+		}
+
+		if u.Network.Active == false {
+			continue
+		}
+
 		resp.Units = append(resp.Units, Unit{
 			Name:      u.Name,
 			Unit:      u.Unit,

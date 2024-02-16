@@ -62,7 +62,8 @@ func (a *Auction) Bid(w http.ResponseWriter, r *http.Request) {
 
 	unit, err := a.units.First(database.Condition{
 		In: map[string]any{
-			"unit": req.Unit,
+			"unit":   req.Unit,
+			"active": true,
 		},
 	})
 	if err != nil {

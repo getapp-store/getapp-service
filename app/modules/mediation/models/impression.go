@@ -27,4 +27,5 @@ type Impression struct {
 	Date time.Time
 
 	Revenue float64
+	Raw     string
 }
