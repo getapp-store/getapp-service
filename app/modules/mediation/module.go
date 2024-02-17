@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"ru/kovardin/getapp/app/modules/mediation/bidding"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -19,6 +18,7 @@ import (
 
 	"ru/kovardin/getapp/app/modules"
 	applications "ru/kovardin/getapp/app/modules/applications/models"
+	"ru/kovardin/getapp/app/modules/mediation/bidding"
 	"ru/kovardin/getapp/app/modules/mediation/config"
 	"ru/kovardin/getapp/app/modules/mediation/handlers"
 	"ru/kovardin/getapp/app/modules/mediation/models"
@@ -157,6 +157,10 @@ func Configure(pb *presets.Builder, db *database.Database, module *Module, serve
 				{
 					Name:  "Native",
 					Value: models.UnitFormatNative,
+				},
+				{
+					Name:  "Rewarded",
+					Value: models.UnitFormatRewarded,
 				},
 			},
 			c.Format,

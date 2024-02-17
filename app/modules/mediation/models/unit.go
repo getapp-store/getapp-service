@@ -14,6 +14,7 @@ const (
 	UnitFormatInterstitial = "interstitial"
 	UnitFormatNative       = "native"
 	UnitFormatBanner       = "banner"
+	UnitFormatRewarded     = "rewarded"
 )
 
 // Unit это представления рекламного юнита из конкретной сетки
