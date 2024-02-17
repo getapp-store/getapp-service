@@ -49,12 +49,6 @@ Content-Type: application/json
 }
 
 
-### stats
-#GET https://target.my.com/api/v2/statistics/geo/pads/hour.json?id=1812360&date_from=2024-01-13&date_to=2024-01-15
-GET https://target.my.com/api/v2/statistics/geo/pads/hour.json?id=2094672&date_from=2024-01-21&date_to=2024-01-23
-Authorization: Bearer {{mytarget}}
-
-
 ### impression
 ### {"data":"{\"currency\":\"RUB\",\"revenueUSD\":\"0.002431112\",\"precision\":\"estimated\",\"revenue\":\"0.213076492\",\"requestId\":\"1705439252722245-1837937026488645841800320-production-app-host-vla-pcode-225\",\"blockId\":\"R-M-2768512-2\",\"adType\":\"interstitial\",\"ad_unit_id\":\"R-M-2768512-2\",\"network\":{\"name\":\"Yandex\",\"adapter\":\"Yandex\",\"ad_unit_id\":\"R-M-2768512-2\"}}","price":150.0,"unit":"R-M-2768512-2"}
 POST {{host}}/v1/mediation/impressions/1/impression

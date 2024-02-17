@@ -259,6 +259,20 @@ func Command(setup func(*cli.Context, ...fx.Option) *fx.App) *cli.Command {
 
 				},
 			},
+
+			&cli.Command{
+				Name: "ya",
+				Action: func(c *cli.Context) error {
+
+					setup(c, fx.Invoke(func(log *logger.Logger, cpms *repos.Cpms) {
+
+						// call yandexapi
+
+					}), fx.NopLogger).Run()
+
+					return nil
+				},
+			},
 		},
 		Action: func(c *cli.Context) error {
 			setup(c, fx.Invoke(func() {

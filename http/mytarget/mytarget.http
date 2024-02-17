@@ -1,0 +1,4 @@
+### stats
+#GET https://target.my.com/api/v2/statistics/geo/pads/hour.json?id=1812360&date_from=2024-01-13&date_to=2024-01-15
+GET https://target.my.com/api/v2/statistics/geo/pads/hour.json?id=2094672&date_from=2024-01-21&date_to=2024-01-23
+Authorization: Bearer {{mytarget}}
