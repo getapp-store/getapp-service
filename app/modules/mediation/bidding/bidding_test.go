@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"ru/kovardin/getapp/app/modules/mediation/models"
-	"ru/kovardin/getapp/app/modules/mediation/networks"
 )
 
 // Define the suite, and absorb the built-in basic suite
@@ -55,7 +54,7 @@ func (suite *BanditTestSuite) TestBid() {
 	for i := 0; i < 9; i++ {
 		val, err = bidding.Bandit(0.01, models.Unit{
 			Network: models.Network{
-				Name: networks.Yandex,
+				Name: models.YandexNetwork,
 			},
 		})
 	}

@@ -25,8 +25,8 @@ import (
 	"ru/kovardin/getapp/app/modules/mediation/repos"
 	"ru/kovardin/getapp/app/modules/mediation/workflow"
 	"ru/kovardin/getapp/app/modules/mediation/workflow/bigo"
-	mmytarget "ru/kovardin/getapp/app/modules/mediation/workflow/mytarget"
-	myandex "ru/kovardin/getapp/app/modules/mediation/workflow/yandex"
+	"ru/kovardin/getapp/app/modules/mediation/workflow/mytarget"
+	"ru/kovardin/getapp/app/modules/mediation/workflow/yandex"
 	"ru/kovardin/getapp/app/servers/http"
 	"ru/kovardin/getapp/app/utils/admin/components"
 	"ru/kovardin/getapp/pkg/cadence"
@@ -35,7 +35,7 @@ import (
 )
 
 func init() {
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure), fx.Invoke(func(m *Module, w *workflow.Workflow) {}))
+	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure), fx.Invoke(func(m *Module) {}))
 	modules.Commands = append(modules.Commands, Command)
 	modules.Providers = append(modules.Providers, fx.Provide(
 		New,
@@ -58,8 +58,8 @@ func init() {
 
 		// cadence
 		workflow.New,
-		myandex.New,
-		mmytarget.New,
+		yandex.New,
+		mytarget.New,
 		bigo.New,
 	))
 }
@@ -306,6 +306,7 @@ func New(
 	impressions *handlers.Impressions,
 	networks *handlers.Networks,
 	cadence *cadence.Cadence,
+	workflow *workflow.Workflow,
 ) *Module {
 	m := &Module{
 		config:      config,
@@ -314,6 +315,7 @@ func New(
 		impressions: impressions,
 		networks:    networks,
 		cadence:     cadence,
+		workflow:    workflow,
 	}
 
 	lc.Append(fx.Hook{
@@ -351,7 +353,7 @@ func (m *Module) Routes(r chi.Router) {
 }
 
 func (m *Module) Start() {
-	m.cadence.StartWorkflow(m.config.Workflow, m.workflow.Execute, "ecpm", m.config.Cron)
+	m.cadence.StartWorkflow(m.config.Workflow, m.workflow.Execute, "mediation", m.config.Cron)
 }
 
 func (m *Module) Stop() {

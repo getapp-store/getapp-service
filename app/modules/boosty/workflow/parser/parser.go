@@ -1,63 +1,62 @@
-package services
+package parser
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"kovardin.ru/projects/boosty/auth"
-	"kovardin.ru/projects/boosty/request"
 	"net/http"
 	"net/url"
-	"time"
 
 	"go.uber.org/zap"
-
 	"kovardin.ru/projects/boosty"
+	"kovardin.ru/projects/boosty/auth"
+	"kovardin.ru/projects/boosty/request"
+
 	"ru/kovardin/getapp/app/modules/boosty/models"
 	"ru/kovardin/getapp/pkg/database"
+	"ru/kovardin/getapp/pkg/logger"
 )
 
 type Parser struct {
-	log           *zap.Logger
+	log           *logger.Logger
 	blogs         *database.Repository[models.Blog]
 	subscriptions *database.Repository[models.Subscription]
 	subscribers   *database.Repository[models.Subscriber]
 	client        *http.Client
-	period        time.Duration
 }
 
-func NewParser(log *zap.Logger, blogs *database.Repository[models.Blog], subscriptions *database.Repository[models.Subscription], subscribers *database.Repository[models.Subscriber]) *Parser {
+func New(
+	log *logger.Logger,
+	blogs *database.Repository[models.Blog],
+	subscriptions *database.Repository[models.Subscription],
+	subscribers *database.Repository[models.Subscriber],
+) *Parser {
 	return &Parser{
 		log:           log,
 		blogs:         blogs,
 		subscriptions: subscriptions,
 		subscribers:   subscribers,
 		client:        &http.Client{},
-		period:        time.Hour * 1,
 	}
 }
 
-func (p *Parser) Start() {
-	ticker := time.NewTicker(p.period)
-	go func() {
-		for ; true; <-ticker.C {
-			bb, err := p.blogs.Find(database.Condition{
-				In: map[string]any{
-					"active": true,
-				},
-			})
-			if err != nil {
-				p.log.Error("error on getting blogs", zap.Error(err))
-			}
+func (p *Parser) Execute(ctx context.Context, name string) (string, error) {
+	bb, err := p.blogs.Find(database.Condition{
+		In: map[string]any{
+			"active": true,
+		},
+	})
+	if err != nil {
+		p.log.Error("error on getting blogs", zap.Error(err))
+	}
 
-			for _, b := range bb {
-				p.process(b)
-			}
-		}
-	}()
-}
+	for _, b := range bb {
+		p.process(b)
+	}
 
-func (p *Parser) Stop() {
+	p.log.Info("finished boosty parser activity")
 
+	return "parsed boosty", nil
 }
 
 func (p *Parser) process(b models.Blog) {

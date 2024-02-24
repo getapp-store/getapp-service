@@ -33,6 +33,8 @@ modules:
     active: true
   boosty:
     active: true
+    workflow: "getapp.boosty"
+    cron: "* * * * *"
   admin:
     username: admin
     password: admin

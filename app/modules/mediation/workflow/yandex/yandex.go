@@ -11,7 +11,6 @@ import (
 	"go.uber.org/zap"
 
 	"ru/kovardin/getapp/app/modules/mediation/models"
-	"ru/kovardin/getapp/app/modules/mediation/networks"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"
 )
@@ -47,7 +46,7 @@ func (y *Yandex) Execute(ctx context.Context, name string) (string, error) {
 	uu, err := y.units.Find(database.Condition{
 		In: map[string]any{
 			`"units"."active"`: true,
-			`"Network"."name"`: networks.Yandex,
+			`"Network"."name"`: models.YandexNetwork,
 		},
 		Joins: []string{
 			"Network",

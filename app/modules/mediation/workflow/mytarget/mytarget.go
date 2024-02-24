@@ -11,7 +11,6 @@ import (
 	"go.uber.org/zap"
 
 	"ru/kovardin/getapp/app/modules/mediation/models"
-	"ru/kovardin/getapp/app/modules/mediation/networks"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"
 )
@@ -40,7 +39,7 @@ func (m *MyTarget) Execute(ctx context.Context, name string) (string, error) {
 	uu, err := m.units.Find(database.Condition{
 		In: map[string]any{
 			`"units"."active"`: true,
-			`"Network"."name"`: networks.MyTarget,
+			`"Network"."name"`: models.MyTargetNetwork,
 		},
 		Joins: []string{
 			"Network",
@@ -101,7 +100,7 @@ func (m *MyTarget) process(model models.Unit) error {
 	}
 
 	// из mytracker все приходит в рублях, перевести cpm нужно в доллары
-	converted := cpm * networks.USD
+	converted := cpm * models.USD
 
 	return m.ecpms.Save(&models.Cpm{
 		UnitId:      model.ID,

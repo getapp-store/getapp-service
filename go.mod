@@ -6,8 +6,9 @@ toolchain go1.21.3
 
 require (
 	github.com/emersion/go-imap v1.2.1
-	github.com/go-chi/chi/v5 v5.0.8
+	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/cors v1.2.1
+	github.com/go-chi/httplog/v2 v2.0.9
 	github.com/go-chi/render v1.0.2
 	github.com/jedib0t/go-pretty/v6 v6.4.8
 	github.com/kelseyhightower/envconfig v1.4.0

@@ -2,6 +2,9 @@ package lokalize
 
 import (
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/qor5/admin/presets"
 	"github.com/qor5/ui/vuetifyx"
@@ -9,8 +12,6 @@ import (
 	"github.com/theplant/htmlgo"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/fx"
-	"log"
-	"os"
 
 	"ru/kovardin/getapp/app/modules"
 	applications "ru/kovardin/getapp/app/modules/applications/models"

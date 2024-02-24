@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"log"
+	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/httplog/v2"
 	"go.uber.org/fx"
 
 	"ru/kovardin/getapp/app/servers/http/config"
@@ -65,10 +68,25 @@ func (s *Server) Stop(ctx context.Context) error {
 }
 
 func (s *Server) routing() http.Handler {
+	logger := httplog.NewLogger("httplog-example", httplog.Options{
+		JSON:             true,
+		LogLevel:         slog.LevelDebug,
+		Concise:          true,
+		RequestHeaders:   true,
+		MessageFieldName: "message",
+		// TimeFieldFormat: time.RFC850,
+		QuietDownRoutes: []string{
+			"/",
+			"/ping",
+		},
+		QuietDownPeriod: 10 * time.Second,
+		// SourceFieldName: "source",
+	})
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
-	r.Use(middleware.Logger)
+	r.Use(httplog.RequestLogger(logger))
 	r.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},

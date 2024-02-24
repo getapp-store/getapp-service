@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"ru/kovardin/getapp/app/utils/admin/components"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -27,8 +26,11 @@ import (
 	"ru/kovardin/getapp/app/modules/boosty/config"
 	"ru/kovardin/getapp/app/modules/boosty/handlers"
 	"ru/kovardin/getapp/app/modules/boosty/models"
-	"ru/kovardin/getapp/app/modules/boosty/services"
+	"ru/kovardin/getapp/app/modules/boosty/workflow"
+	"ru/kovardin/getapp/app/modules/boosty/workflow/parser"
 	"ru/kovardin/getapp/app/servers/http"
+	"ru/kovardin/getapp/app/utils/admin/components"
+	"ru/kovardin/getapp/pkg/cadence"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"
 )
@@ -37,13 +39,16 @@ func init() {
 	modules.Commands = append(modules.Commands, Command)
 	modules.Providers = append(modules.Providers, fx.Provide(
 		New,
-		services.NewParser,
 		database.NewRepository[models.Blog],
 		database.NewRepository[models.Subscription],
 		database.NewRepository[models.Subscriber],
 		handlers.NewSubscribers,
 		handlers.NewSubscriptions,
 		handlers.NewBlogs,
+
+		// cadence
+		workflow.New,
+		parser.New,
 	))
 	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure), fx.Invoke(func(m *Module) {}))
 }
@@ -269,7 +274,8 @@ func Command(setup func(*cli.Context, ...fx.Option) *fx.App) *cli.Command {
 
 type Module struct {
 	config        config.Config
-	parser        *services.Parser
+	cadence       *cadence.Cadence
+	workflow      *workflow.Workflow
 	subscriptions *handlers.Subscriptions
 	subscribers   *handlers.Subscribers
 	blogs         *handlers.Blogs
@@ -278,14 +284,16 @@ type Module struct {
 func New(
 	lc fx.Lifecycle,
 	config config.Config,
-	parser *services.Parser,
+	cadence *cadence.Cadence,
+	workflow *workflow.Workflow,
 	subscriptions *handlers.Subscriptions,
 	subscribers *handlers.Subscribers,
 	blogs *handlers.Blogs,
 ) *Module {
 	m := &Module{
 		config:        config,
-		parser:        parser,
+		cadence:       cadence,
+		workflow:      workflow,
 		subscriptions: subscriptions,
 		subscribers:   subscribers,
 		blogs:         blogs,
@@ -306,17 +314,10 @@ func New(
 }
 
 func (m *Module) Start() {
-	if !m.config.Active {
-		return
-	}
-	m.parser.Start()
+	m.cadence.StartWorkflow(m.config.Workflow, m.workflow.Execute, "boosty", m.config.Cron)
 }
 
 func (m *Module) Stop() {
-	if !m.config.Active {
-		return
-	}
-	m.parser.Stop()
 }
 
 func (m *Module) Routes(r chi.Router) {

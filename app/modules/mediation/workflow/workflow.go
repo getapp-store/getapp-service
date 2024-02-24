@@ -43,7 +43,7 @@ func (wr *Workflow) Execute(ctx w.Context, name string) error {
 	ctx = w.WithActivityOptions(ctx, options)
 
 	log := w.GetLogger(ctx)
-	log.Info("example workflow started")
+	log.Info("ecpm workflow started")
 	var result string
 
 	if err := w.ExecuteActivity(ctx, wr.yandex.Execute, name).Get(ctx, &result); err != nil {
