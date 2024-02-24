@@ -26,6 +26,7 @@ import (
 	_ "ru/kovardin/getapp/app/modules/users"
 	_ "ru/kovardin/getapp/app/modules/warehouse"
 	"ru/kovardin/getapp/app/servers/http"
+	"ru/kovardin/getapp/pkg/cadence"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"
 	"ru/kovardin/getapp/pkg/mail"
@@ -92,9 +93,11 @@ func setup(c *cli.Context, opts ...fx.Option) *fx.App {
 		logger.New,
 		database.NewDatabase,
 		mail.New,
+		cadence.New,
 	))
 	opts = append(opts, modules.Providers...)
 	opts = append(opts, fx.StartTimeout(time.Second*60))
+	opts = append(opts, fx.NopLogger)
 
 	return fx.New(
 		opts...,

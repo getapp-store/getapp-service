@@ -1,12 +1,13 @@
 package bigo
 
 import (
-	"ru/kovardin/getapp/app/modules/mediation/networks"
+	"context"
 	"time"
 
 	"go.uber.org/zap"
 
 	"ru/kovardin/getapp/app/modules/mediation/models"
+	"ru/kovardin/getapp/app/modules/mediation/networks"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"
 )
@@ -16,8 +17,6 @@ type Bigo struct {
 	ecpm        *database.Repository[models.Cpm]
 	impressions *database.Repository[models.Impression]
 	units       *database.Repository[models.Unit]
-
-	period time.Duration
 }
 
 func New(
@@ -31,45 +30,39 @@ func New(
 		ecpm:        ecpm,
 		impressions: impressions,
 		units:       units,
-
-		period: time.Hour * 1,
-		//period: time.Second * 10,
 	}
 }
 
-func (b *Bigo) Start() {
-	ticker := time.NewTicker(b.period)
-	go func() {
-		for ; true; <-ticker.C {
-			uu, err := b.units.Find(database.Condition{
-				In: map[string]any{
-					`"units"."active"`: true,
-					`"Network"."name"`: networks.Bigo,
-				},
-				Joins: []string{
-					"Network",
-				},
-			})
-			if err != nil {
-				b.log.Error("error on getting trackers", zap.Error(err))
-			}
+func (b *Bigo) Execute(ctx context.Context, name string) (string, error) {
+	uu, err := b.units.Find(database.Condition{
+		In: map[string]any{
+			`"units"."active"`: true,
+			`"Network"."name"`: networks.Bigo,
+		},
+		Joins: []string{
+			"Network",
+		},
+	})
+	if err != nil {
+		b.log.Error("error on getting trackers", zap.Error(err))
+	}
 
-			for _, u := range uu {
-				b.process(u)
-			}
+	for _, u := range uu {
+		if err := b.process(u); err != nil {
+			b.log.Error("error parse cpm", zap.Error(err))
 		}
+	}
 
-		//for range ticker.C {
-		//	u.process()
-		//}
-	}()
+	b.log.Info("finished bigo ecpm activity")
+
+	return "parsed bigo ecpm", nil
 }
 
-func (y *Bigo) process(model models.Unit) error {
+func (b *Bigo) process(model models.Unit) error {
 	// собираем показы за период и считаем CPM
 	to := time.Now()
 	from := to.Add(-time.Hour * 24 * 3)
-	ii, err := y.impressions.Find(database.Condition{
+	ii, err := b.impressions.Find(database.Condition{
 		In: map[string]any{
 			"unit_id":      model.ID,
 			"network_id":   model.NetworkId,
@@ -93,7 +86,7 @@ func (y *Bigo) process(model models.Unit) error {
 	)
 
 	for _, i := range ii {
-		y.log.Info("yandex impressions service", zap.Any("impression", i))
+		b.log.Info("yandex impressions service", zap.Any("impression", i))
 
 		total += i.Revenue
 		cnt++
@@ -107,7 +100,7 @@ func (y *Bigo) process(model models.Unit) error {
 		cmp = one * 1000
 	}
 
-	if err := y.ecpm.Save(&models.Cpm{
+	if err := b.ecpm.Save(&models.Cpm{
 		UnitId:      model.ID,
 		NetworkId:   model.NetworkId,
 		PlacementId: model.PlacementId,
@@ -115,12 +108,8 @@ func (y *Bigo) process(model models.Unit) error {
 		Amount:      cmp, // переводим в копей
 		CreatedAt:   to,
 	}); err != nil {
-		y.log.Error("error save cpm", zap.Error(err))
+		b.log.Error("error save cpm", zap.Error(err))
 	}
 
 	return nil
-}
-
-func (b *Bigo) Stop() {
-
 }

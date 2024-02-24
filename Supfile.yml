@@ -1,11 +1,20 @@
 networks:
   production:
     hosts:
-      - root@getapp.store
+      - root@5.101.51.210
+      - root@80.249.146.207
+
+  getapp01:
+    hosts:
+      - root@5.101.51.210
+
+  getapp02:
+    hosts:
+      - root@80.249.146.207
 
 commands:
   stop:
-    run: systemctl stop service.getapp.service
+    run: systemctl stop getapp.store.service
 
   start:
-    run: systemctl start service.getapp.service
+    run: systemctl start getapp.store.service

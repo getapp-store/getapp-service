@@ -18,6 +18,13 @@ application:
     port: 25
     username: "example@example.store"
 
+  cadence:
+    host: 127.0.0.1:7833
+    domain: getapp
+    tasks: getapp-worker-tasklist
+    service: cadence-frontend
+    client: getapp-worker
+
   server:
     address: :3333
 
@@ -31,3 +38,5 @@ modules:
     password: admin
   mediation:
     active: true
+    workflow: "getapp.ecpms"
+    cron: "* * * * *"

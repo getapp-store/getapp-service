@@ -16,58 +16,56 @@ import (
 	"ru/kovardin/getapp/pkg/logger"
 )
 
+const layout = "2006-01-02"
+
 type Yandex struct {
 	log         *logger.Logger
 	ecpm        *database.Repository[models.Cpm]
 	impressions *database.Repository[models.Impression]
 	units       *database.Repository[models.Unit]
-
-	period time.Duration
-	client *http.Client
-	url    string
+	client      *http.Client
+	url         string
 }
 
-func New(log *logger.Logger, ecpm *database.Repository[models.Cpm], impressions *database.Repository[models.Impression], units *database.Repository[models.Unit]) *Yandex {
+func New(
+	log *logger.Logger,
+	ecpm *database.Repository[models.Cpm],
+	impressions *database.Repository[models.Impression],
+	units *database.Repository[models.Unit],
+) *Yandex {
 	return &Yandex{
 		log:         log,
 		ecpm:        ecpm,
 		impressions: impressions,
 		units:       units,
-		period:      time.Hour * 1,
-		//period: time.Second * 10,
-		client: &http.Client{},
-		url:    `https://partner2.yandex.ru/api/statistics2/get.json`,
+		client:      &http.Client{},
+		url:         `https://partner2.yandex.ru/api/statistics2/get.json`,
 	}
 }
 
-func (y *Yandex) Start() {
-	ticker := time.NewTicker(y.period)
-	go func() {
-		for ; true; <-ticker.C {
-			uu, err := y.units.Find(database.Condition{
-				In: map[string]any{
-					`"units"."active"`: true,
-					`"Network"."name"`: networks.Yandex,
-				},
-				Joins: []string{
-					"Network",
-				},
-			})
-			if err != nil {
-				y.log.Error("error on getting trackers", zap.Error(err))
-			}
+func (y *Yandex) Execute(ctx context.Context, name string) (string, error) {
+	uu, err := y.units.Find(database.Condition{
+		In: map[string]any{
+			`"units"."active"`: true,
+			`"Network"."name"`: networks.Yandex,
+		},
+		Joins: []string{
+			"Network",
+		},
+	})
+	if err != nil {
+		y.log.Error("error on getting trackers", zap.Error(err))
+	}
 
-			for _, u := range uu {
-				if err := y.process(u); err != nil {
-					y.log.Error("error parse cpm", zap.Error(err))
-				}
-			}
+	for _, u := range uu {
+		if err := y.process(u); err != nil {
+			y.log.Error("error parse cpm", zap.Error(err))
 		}
+	}
 
-		//for range ticker.C {
-		//	u.process()
-		//}
-	}()
+	y.log.Info("finished yandex ecpm activity")
+
+	return "parsed yandex ecpm", nil
 }
 
 func (y *Yandex) process(model models.Unit) error {
@@ -126,8 +124,4 @@ func (y *Yandex) process(model models.Unit) error {
 	}
 
 	return nil
-}
-
-func (y *Yandex) Stop() {
-
 }

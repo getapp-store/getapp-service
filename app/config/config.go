@@ -13,6 +13,7 @@ import (
 	boosty "ru/kovardin/getapp/app/modules/boosty/config"
 	mediation "ru/kovardin/getapp/app/modules/mediation/config"
 	http "ru/kovardin/getapp/app/servers/http/config"
+	"ru/kovardin/getapp/pkg/cadence"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"
 	"ru/kovardin/getapp/pkg/mail"
@@ -24,6 +25,7 @@ type Application struct {
 	Database database.Config
 	Server   http.Config
 	Mail     mail.Config
+	Cadence  cadence.Config
 }
 
 type Modules struct {

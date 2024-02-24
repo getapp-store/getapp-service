@@ -2,19 +2,7 @@
 
 version: '3'
 
-vars:
-  GREETING: Hello, World!
-
 tasks:
-  default:
-    cmds:
-      - echo "{{.GREETING}}"
-    silent: true
-
-  release:
-    cmds:
-      - echo "{{.GREETING}}"
-
   macos:
     cmds:
       - mkdir -p build/mac/
@@ -28,16 +16,23 @@ tasks:
   deploy:
     deps: [build]
     cmds:
-      - sup production stop
-      - scp ./build/bin/getapp getapp.store:/opt/getapp/bin/
-      - scp ./configs/prod.yml getapp.store:/opt/getapp/configs/
-      - scp ./configs/base.yml getapp.store:/opt/getapp/configs/
-      - scp ./templates/users/choose.gohtml getapp.store:/opt/getapp/templates/users/
-      - scp ./templates/users/mail/login.gohtml getapp.store:/opt/getapp/templates/users/mail/
-      - scp ./templates/users/mail/send.gohtml getapp.store:/opt/getapp/templates/users/mail/
-      - scp ./templates/users/mail/success.gohtml getapp.store:/opt/getapp/templates/users/mail/
-      - scp ./templates/users/vkontakte/login.gohtml getapp.store:/opt/getapp/templates/users/vkontakte/
-      - scp ./templates/billing/base.gohtml getapp.store:/opt/getapp/templates/billing/
-      - scp ./templates/billing/purchase.gohtml getapp.store:/opt/getapp/templates/billing/
-      - scp ./templates/billing/success.gohtml getapp.store:/opt/getapp/templates/billing/
-      - sup production start
+      - task: deploy-instance
+        vars:
+          SERVER: getapp01
+
+  deploy-instance:
+    internal: true
+    cmds:
+      - sup {{ .SERVER }} stop
+      - scp ./build/bin/getapp {{ .SERVER }}:/opt/getapp/bin/
+      - scp ./configs/prod.yml {{ .SERVER }}:/opt/getapp/configs/
+      - scp ./configs/base.yml {{ .SERVER }}:/opt/getapp/configs/
+      - scp ./templates/users/choose.gohtml {{ .SERVER }}:/opt/getapp/templates/users/
+      - scp ./templates/users/mail/login.gohtml {{ .SERVER }}:/opt/getapp/templates/users/mail/
+      - scp ./templates/users/mail/send.gohtml {{ .SERVER }}:/opt/getapp/templates/users/mail/
+      - scp ./templates/users/mail/success.gohtml {{ .SERVER }}:/opt/getapp/templates/users/mail/
+      - scp ./templates/users/vkontakte/login.gohtml {{ .SERVER }}:/opt/getapp/templates/users/vkontakte/
+      - scp ./templates/billing/base.gohtml {{ .SERVER }}:/opt/getapp/templates/billing/
+      - scp ./templates/billing/purchase.gohtml {{ .SERVER }}:/opt/getapp/templates/billing/
+      - scp ./templates/billing/success.gohtml {{ .SERVER }}:/opt/getapp/templates/billing/
+      - sup {{ .SERVER }} start

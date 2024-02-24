@@ -19,7 +19,7 @@ func (s *Repository[T]) Find(condition Condition) ([]T, error) {
 	var model T
 
 	err := Query(condition).Build(
-		s.db.DB().Debug().Model(model),
+		s.db.DB().Model(model),
 	).Order("created_at DESC").Find(&models).Error
 
 	if err != nil && err != gorm.ErrRecordNotFound {
@@ -32,7 +32,7 @@ func (s *Repository[T]) Find(condition Condition) ([]T, error) {
 func (s *Repository[T]) First(condition Condition) (T, error) {
 	var model T
 	err := Query(condition).Build(
-		s.db.DB().Debug().Model(model),
+		s.db.DB().Model(model),
 	).Order("created_at DESC").First(&model).Error
 
 	if err != nil && err != gorm.ErrRecordNotFound {

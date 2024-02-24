@@ -23,19 +23,19 @@ import (
 	"ru/kovardin/getapp/app/modules/mediation/handlers"
 	"ru/kovardin/getapp/app/modules/mediation/models"
 	"ru/kovardin/getapp/app/modules/mediation/repos"
-	"ru/kovardin/getapp/app/modules/mediation/services"
-	"ru/kovardin/getapp/app/modules/mediation/services/bigo"
-	"ru/kovardin/getapp/app/modules/mediation/services/cpa"
-	"ru/kovardin/getapp/app/modules/mediation/services/mytarget"
-	"ru/kovardin/getapp/app/modules/mediation/services/yandex"
+	"ru/kovardin/getapp/app/modules/mediation/workflow"
+	"ru/kovardin/getapp/app/modules/mediation/workflow/bigo"
+	mmytarget "ru/kovardin/getapp/app/modules/mediation/workflow/mytarget"
+	myandex "ru/kovardin/getapp/app/modules/mediation/workflow/yandex"
 	"ru/kovardin/getapp/app/servers/http"
 	"ru/kovardin/getapp/app/utils/admin/components"
+	"ru/kovardin/getapp/pkg/cadence"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"
 )
 
 func init() {
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure), fx.Invoke(func(m *Module) {}))
+	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure), fx.Invoke(func(m *Module, w *workflow.Workflow) {}))
 	modules.Commands = append(modules.Commands, Command)
 	modules.Providers = append(modules.Providers, fx.Provide(
 		New,
@@ -52,14 +52,15 @@ func init() {
 		handlers.NewPlacements,
 		handlers.NewAuction,
 		handlers.NewImpressions,
-		// services
-		mytarget.New,
-		yandex.New,
-		cpa.New,
-		bigo.New,
-		services.New,
+
 		// rotation
 		bidding.New,
+
+		// cadence
+		workflow.New,
+		myandex.New,
+		mmytarget.New,
+		bigo.New,
 	))
 }
 
@@ -288,29 +289,31 @@ func Command(setup func(*cli.Context, ...fx.Option) *fx.App) *cli.Command {
 
 type Module struct {
 	config      config.Config
-	services    *services.Services
 	auction     *handlers.Auction
 	placements  *handlers.Placements
 	impressions *handlers.Impressions
 	networks    *handlers.Networks
+	// cadence
+	cadence  *cadence.Cadence
+	workflow *workflow.Workflow
 }
 
 func New(
 	lc fx.Lifecycle,
 	config config.Config,
-	parser *services.Services,
 	auction *handlers.Auction,
 	placements *handlers.Placements,
 	impressions *handlers.Impressions,
 	networks *handlers.Networks,
+	cadence *cadence.Cadence,
 ) *Module {
 	m := &Module{
 		config:      config,
-		services:    parser,
 		auction:     auction,
 		placements:  placements,
 		impressions: impressions,
 		networks:    networks,
+		cadence:     cadence,
 	}
 
 	lc.Append(fx.Hook{
@@ -334,7 +337,6 @@ func (m *Module) Routes(r chi.Router) {
 		})
 
 		r.Route("/auction/{placement}", func(r chi.Router) {
-			//r.Post("/mediate", m.auction.Mediate)
 			r.Post("/bid", m.auction.Bid)
 		})
 
@@ -349,15 +351,11 @@ func (m *Module) Routes(r chi.Router) {
 }
 
 func (m *Module) Start() {
-	if !m.config.Active {
-		return
-	}
-	m.services.Start()
+	m.cadence.StartWorkflow(m.config.Workflow, m.workflow.Execute, "ecpm", m.config.Cron)
 }
 
 func (m *Module) Stop() {
 	if !m.config.Active {
 		return
 	}
-	m.services.Stop()
 }

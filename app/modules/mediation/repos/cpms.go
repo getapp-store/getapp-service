@@ -24,7 +24,7 @@ func New(log *logger.Logger, db *database.Database) *Cpms {
 }
 
 func (c *Cpms) CpmsByNetwork(from, to time.Time) ([]models.CpmByNetwork, error) {
-	rows, err := c.db.DB().Debug().Raw(cpmsByNetwork, from, to).Rows()
+	rows, err := c.db.DB().Raw(cpmsByNetwork, from, to).Rows()
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return []models.CpmByNetwork{}, nil

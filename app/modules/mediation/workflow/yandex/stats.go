@@ -1,7 +1,5 @@
 package yandex
 
-const layout = "2006-01-02"
-
 type Stats struct {
 	Result string `json:"result"`
 	Data   struct {
