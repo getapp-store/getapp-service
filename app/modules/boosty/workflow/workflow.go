@@ -42,5 +42,7 @@ func (wr *Workflow) Execute(ctx w.Context, name string) error {
 		log.Error("activity failed", zap.Error(err))
 	}
 
+	log.Info("boosty workflow completed", zap.String("result", result))
+
 	return nil
 }

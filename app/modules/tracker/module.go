@@ -22,10 +22,14 @@ import (
 
 	"ru/kovardin/getapp/app/modules"
 	applications "ru/kovardin/getapp/app/modules/applications/models"
+	"ru/kovardin/getapp/app/modules/tracker/config"
 	"ru/kovardin/getapp/app/modules/tracker/handlers"
 	"ru/kovardin/getapp/app/modules/tracker/models"
-	"ru/kovardin/getapp/app/modules/tracker/services"
+	"ru/kovardin/getapp/app/modules/tracker/workflow"
+	"ru/kovardin/getapp/app/modules/tracker/workflow/vkads"
+	"ru/kovardin/getapp/app/modules/tracker/workflow/yandex"
 	"ru/kovardin/getapp/app/servers/http"
+	"ru/kovardin/getapp/pkg/cadence"
 	"ru/kovardin/getapp/pkg/database"
 )
 
@@ -36,7 +40,11 @@ func init() {
 		handlers.NewConversions,
 		database.NewRepository[models.Conversion],
 		database.NewRepository[models.Tracker],
-		services.NewUploader,
+
+		// cadence
+		workflow.New,
+		yandex.New,
+		vkads.New,
 	))
 	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure), fx.Invoke(func(m *Module) {}))
 }
@@ -191,14 +199,24 @@ func Command(setup func(*cli.Context, ...fx.Option) *fx.App) *cli.Command {
 }
 
 type Module struct {
+	config      config.Config
 	conversions *handlers.Conversions
-	uploader    *services.Uploader
+	cadence     *cadence.Cadence
+	workflow    *workflow.Workflow
 }
 
-func New(lc fx.Lifecycle, conversions *handlers.Conversions, uploader *services.Uploader) *Module {
+func New(
+	lc fx.Lifecycle,
+	config config.Config,
+	conversions *handlers.Conversions,
+	cadence *cadence.Cadence,
+	workflow *workflow.Workflow,
+) *Module {
 	m := &Module{
+		config:      config,
 		conversions: conversions,
-		uploader:    uploader,
+		cadence:     cadence,
+		workflow:    workflow,
 	}
 
 	lc.Append(fx.Hook{
@@ -216,11 +234,11 @@ func New(lc fx.Lifecycle, conversions *handlers.Conversions, uploader *services.
 }
 
 func (m *Module) Start() {
-	m.uploader.Start()
+	m.cadence.StartWorkflow(m.config.Workflow, m.workflow.Execute, "tracker", m.config.Cron)
 }
 
 func (m *Module) Stop() {
-	m.uploader.Stop()
+
 }
 
 func (m *Module) Routes(r chi.Router) {

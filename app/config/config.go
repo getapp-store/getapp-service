@@ -12,6 +12,7 @@ import (
 	billing "ru/kovardin/getapp/app/modules/billing/config"
 	boosty "ru/kovardin/getapp/app/modules/boosty/config"
 	mediation "ru/kovardin/getapp/app/modules/mediation/config"
+	tracker "ru/kovardin/getapp/app/modules/tracker/config"
 	http "ru/kovardin/getapp/app/servers/http/config"
 	"ru/kovardin/getapp/pkg/cadence"
 	"ru/kovardin/getapp/pkg/database"
@@ -34,6 +35,7 @@ type Modules struct {
 	Boosty    boosty.Config
 	Admin     admin.Config
 	Mediation mediation.Config
+	Tracker   tracker.Config
 }
 
 type Config struct {
