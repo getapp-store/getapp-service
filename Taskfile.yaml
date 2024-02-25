@@ -19,6 +19,9 @@ tasks:
       - task: deploy-instance
         vars:
           SERVER: getapp01
+      - task: deploy-instance
+        vars:
+          SERVER: getapp02
 
   deploy-instance:
     internal: true
