@@ -10,6 +10,7 @@ require (
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/httplog/v2 v2.0.9
 	github.com/go-chi/render v1.0.2
+	github.com/go-echarts/go-echarts/v2 v2.3.3
 	github.com/jedib0t/go-pretty/v6 v6.4.8
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/qor5/admin v0.0.0-20230703041855-60c94312fae6

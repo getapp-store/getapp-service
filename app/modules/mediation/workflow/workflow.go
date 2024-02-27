@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"ru/kovardin/getapp/app/modules/mediation/config"
 	"time"
 
 	w "go.uber.org/cadence/workflow"
@@ -13,13 +14,21 @@ import (
 )
 
 type Workflow struct {
+	config   config.Config
 	yandex   *yandex.Yandex
 	mytarget *mytarget.MyTarget
 	bigo     *bigo.Bigo
 }
 
-func New(cadence *cadence.Cadence, yandex *yandex.Yandex, mytarget *mytarget.MyTarget, bigo *bigo.Bigo) *Workflow {
+func New(
+	config config.Config,
+	cadence *cadence.Cadence,
+	yandex *yandex.Yandex,
+	mytarget *mytarget.MyTarget,
+	bigo *bigo.Bigo,
+) *Workflow {
 	workflow := &Workflow{
+		config:   config,
 		yandex:   yandex,
 		mytarget: mytarget,
 		bigo:     bigo,
@@ -41,10 +50,17 @@ func (wr *Workflow) Execute(ctx w.Context, name string) error {
 	}
 
 	ctx = w.WithActivityOptions(ctx, options)
-
 	log := w.GetLogger(ctx)
-	log.Info("ecpm workflow started")
+
 	var result string
+
+	if !wr.config.Active {
+		result = "disabled"
+		log.Info("ecpm workflow disabled", zap.String("result", result))
+		return nil
+	}
+
+	log.Info("ecpm workflow started")
 
 	if err := w.ExecuteActivity(ctx, wr.yandex.Execute, name).Get(ctx, &result); err != nil {
 		log.Error("activity failed", zap.Error(err))

@@ -2,15 +2,15 @@ package admin
 
 import (
 	"fmt"
+	"github.com/qor5/ui/vuetify"
 	"log"
 	"net/http"
 	"os"
+	"ru/kovardin/getapp/app/modules/admin/dashboards"
 
 	"github.com/go-chi/chi/v5"
 	plogin "github.com/qor5/admin/login"
 	"github.com/qor5/admin/presets"
-	"github.com/qor5/admin/presets/gorm2op"
-	"github.com/qor5/ui/vuetify"
 	"github.com/qor5/web"
 	"github.com/qor5/x/login"
 	"github.com/theplant/htmlgo"
@@ -30,6 +30,8 @@ func init() {
 		New,
 		Login,
 		database.NewRepository[models.Setting],
+		// dashboards
+		dashboards.NewHome,
 	))
 	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure))
 }
@@ -54,12 +56,18 @@ func Configure(pb *presets.Builder, database *database.Database, module *Module,
 
 	pb.
 		URIPrefix("/admin").
-		BrandTitle("GetApp").
-		DataOperator(gorm2op.DataOperator(db)).
+		BrandFunc(func(ctx *web.EventContext) htmlgo.HTMLComponent {
+			return vuetify.VCardText(
+				htmlgo.A(htmlgo.H1("GetApp")).Href("/admin"),
+			).Class("pa-0")
+		}).
 		HomePageFunc(func(ctx *web.EventContext) (r web.PageResponse, err error) {
-			r.Body = vuetify.VContainer(
-				htmlgo.H1("Home"),
-				htmlgo.P().Text("Change your home page here"))
+			r.Body = htmlgo.Div(
+				htmlgo.Iframe().
+					Src("/admin/home/dashboard").
+					Attr("width", "100%", "height", "100%", "frameborder", "no").
+					Style("transform-origin: left top; transform: scale(1, 1);"),
+			).Style("height: 100vh; width: 100%")
 			return
 		})
 
@@ -125,6 +133,7 @@ func Configure(pb *presets.Builder, database *database.Database, module *Module,
 	}
 
 	server.Routers(module)
+	server.Dashboaders(module)
 }
 
 func Command(setup func(*cli.Context, ...fx.Option) *fx.App) *cli.Command {
@@ -146,26 +155,29 @@ type Module struct {
 	pb     *presets.Builder
 	lb     *login.Builder
 	config config.Config
+	home   *dashboards.Home
 }
 
-func New(pb *presets.Builder, lb *login.Builder, config config.Config, db *database.Database) *Module {
+func New(
+	pb *presets.Builder,
+	lb *login.Builder,
+	config config.Config,
+	db *database.Database,
+	home *dashboards.Home,
+) *Module {
 	return &Module{
 		db:     db,
 		pb:     pb,
 		lb:     lb,
 		config: config,
+		home:   home,
 	}
 }
 
 func (m *Module) Routes(r chi.Router) {
-	r.Route("/admin", func(r chi.Router) {
-		r.Use(m.lb.Middleware())
 
-		r.Mount("/", m.pb)
-	})
+}
 
-	mux := http.NewServeMux()
-	m.lb.Mount(mux)
-
-	r.Mount("/", mux)
+func (m *Module) Dashboards(r chi.Router) {
+	r.Get("/home/dashboard", m.home.Dashboard)
 }

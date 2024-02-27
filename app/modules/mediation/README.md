@@ -16,3 +16,4 @@
 ### Записки
 
 - Как сделать прозрачную активити для [кастомного интерстишела](https://blog.mindorks.com/how-to-create-a-transparent-activity-in-android/)
+- Пример запроса для [AB теста](https://client-api.remote-config.rustore.ru/api/get?app_id=7ddca82f-7ce8-4381-a0ef-aed0f64fcdf3) 

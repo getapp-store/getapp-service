@@ -3,6 +3,8 @@ package http
 import (
 	"context"
 	"errors"
+	"github.com/qor5/admin/presets"
+	"github.com/qor5/x/login"
 	"log"
 	"log/slog"
 	"net/http"
@@ -21,19 +23,28 @@ import (
 type Server struct {
 	db     *database.Database
 	config config.Config
+	pb     *presets.Builder
+	lb     *login.Builder
 	serv   *http.Server
 
-	modules []Routers
+	modules    []Routers
+	dashboards []Dashboarders
 }
 
 type Routers interface {
 	Routes(r chi.Router)
 }
 
-func New(lc fx.Lifecycle, db *database.Database, config config.Config) *Server {
+type Dashboarders interface {
+	Dashboards(r chi.Router)
+}
+
+func New(lc fx.Lifecycle, config config.Config, pb *presets.Builder, lb *login.Builder, db *database.Database) *Server {
 	s := &Server{
 		db:      db,
 		config:  config,
+		pb:      pb,
+		lb:      lb,
 		modules: []Routers{},
 	}
 
@@ -104,9 +115,31 @@ func (s *Server) routing() http.Handler {
 		w.Write([]byte("^)"))
 	})
 
+	// admin routers
+	r.Route("/admin", func(r chi.Router) {
+		//r.Use(s.lb.Middleware())
+
+		r.Mount("/", s.pb)
+
+		// dashboards
+		for _, m := range s.dashboards {
+			m.Dashboards(r)
+		}
+	})
+
+	mux := http.NewServeMux()
+
+	s.lb.Mount(mux)
+
+	r.Mount("/", mux)
+
 	return r
 }
 
 func (s *Server) Routers(r Routers) {
 	s.modules = append(s.modules, r)
+}
+
+func (s *Server) Dashboaders(r Dashboarders) {
+	s.dashboards = append(s.dashboards, r)
 }

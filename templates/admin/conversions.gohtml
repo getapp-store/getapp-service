@@ -1,0 +1,75 @@
+{{define "conversions"}}
+    <div class="p-3">
+        <h3>Установки</h3>
+
+        <div id="conversions-chart" style="height: 300px; width:100%;"></div>
+
+        <script type="application/javascript">
+            document.addEventListener("DOMContentLoaded", (event) => {
+                var conversionsChart = echarts.init(document.getElementById('conversions-chart'));
+                window.addEventListener('resize', function () {
+                    conversionsChart.resize();
+                });
+
+                var option;
+
+                option = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'cross',
+                            label: {
+                                backgroundColor: '#6a7985'
+                            }
+                        }
+                    },
+                    legend: {
+                        data: [{{range .Trackers}} '{{.Name}}', {{end}}],
+                        orient: 'vertical',
+                        top: 'center',
+                        right: 0
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {}
+                        }
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '120px',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: [
+                        {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: [{{range .Data}} '{{.Format "2006 Jan 02"}}', {{end}}]
+                        }
+                    ],
+                    yAxis: [
+                        {
+                            type: 'value'
+                        }
+                    ],
+                    series: [
+                        {{range .Trackers}}
+                        {
+                            name: '{{.Name}}',
+                            type: 'line',
+                            stack: 'Total',
+                            areaStyle: {},
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            data: [{{range .Data}} {{.}}, {{end}}]
+                        },
+                        {{end}}
+                    ]
+                };
+
+                option && conversionsChart.setOption(option);
+            })
+        </script>
+    </div>
+{{end}}

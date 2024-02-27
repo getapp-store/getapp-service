@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/qor5/admin/presets/gorm2op"
 	"math/rand"
 	"os"
 	"time"
@@ -88,7 +89,10 @@ func setup(c *cli.Context, opts ...fx.Option) *fx.App {
 		func() config.Config {
 			return config.New(env, cfg)
 		},
-		presets.New,
+		func(db *database.Database) *presets.Builder {
+			return presets.New().
+				DataOperator(gorm2op.DataOperator(db.DB()))
+		},
 		http.New,
 		logger.New,
 		database.NewDatabase,
