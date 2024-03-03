@@ -22,9 +22,12 @@ import (
 )
 
 func init() {
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure))
 	modules.Commands = append(modules.Commands, Command)
-	modules.Providers = append(modules.Providers, fx.Provide(
+	modules.Modules = append(modules.Modules, Users)
+}
+
+var Users = fx.Module("users",
+	fx.Provide(
 		New,
 		// variants
 		handlers.NewVkontakte,
@@ -34,8 +37,9 @@ func init() {
 		database.NewRepository[models.Pincode],
 		database.NewRepository[models.User],
 		database.NewRepository[models.Auth],
-	))
-}
+	),
+	fx.Invoke(Configure),
+)
 
 func Configure(pb *presets.Builder, db *database.Database, module *Module, server *http.Server) {
 	uu := pb.Model(&models.User{})

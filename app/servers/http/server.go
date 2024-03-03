@@ -117,7 +117,7 @@ func (s *Server) routing() http.Handler {
 
 	// admin routers
 	r.Route("/admin", func(r chi.Router) {
-		//r.Use(s.lb.Middleware())
+		r.Use(s.lb.Middleware())
 
 		r.Mount("/", s.pb)
 

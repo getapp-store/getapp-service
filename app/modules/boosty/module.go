@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"ru/kovardin/getapp/pkg/utils/admin/components"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -33,11 +32,16 @@ import (
 	"ru/kovardin/getapp/pkg/cadence"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"
+	"ru/kovardin/getapp/pkg/utils/admin/components"
 )
 
 func init() {
 	modules.Commands = append(modules.Commands, Command)
-	modules.Providers = append(modules.Providers, fx.Provide(
+	modules.Modules = append(modules.Modules, Boosty)
+}
+
+var Boosty = fx.Module("boosty",
+	fx.Provide(
 		New,
 		database.NewRepository[models.Blog],
 		database.NewRepository[models.Subscription],
@@ -49,9 +53,10 @@ func init() {
 		// cadence
 		workflow.New,
 		parser.New,
-	))
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure), fx.Invoke(func(m *Module) {}))
-}
+	),
+	fx.Invoke(Configure),
+	fx.Invoke(func(m *Module) {}),
+)
 
 func Configure(pb *presets.Builder, db *database.Database, module *Module, server *http.Server) {
 	blogs := pb.Model(&models.Blog{})

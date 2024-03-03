@@ -6,7 +6,6 @@ import (
 )
 
 var (
-	Commands  = []func(func(*cli.Context, ...fx.Option) *fx.App) *cli.Command{}
-	Providers = []fx.Option{} // global providers for all commands
-	Invokes   = []fx.Option{} // invoke only for server command
+	Commands = []func(func(*cli.Context, ...fx.Option) *fx.App) *cli.Command{}
+	Modules  = []fx.Option{}
 )

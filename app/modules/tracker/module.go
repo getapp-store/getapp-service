@@ -3,6 +3,9 @@ package tracker
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/qor5/admin/presets"
 	"github.com/qor5/ui/vuetifyx"
@@ -10,13 +13,11 @@ import (
 	"github.com/theplant/htmlgo"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/fx"
-	"log"
-	"os"
-	"ru/kovardin/getapp/app/modules/tracker/dashboards"
 
 	"ru/kovardin/getapp/app/modules"
 	applications "ru/kovardin/getapp/app/modules/applications/models"
 	"ru/kovardin/getapp/app/modules/tracker/config"
+	"ru/kovardin/getapp/app/modules/tracker/dashboards"
 	"ru/kovardin/getapp/app/modules/tracker/handlers"
 	"ru/kovardin/getapp/app/modules/tracker/models"
 	"ru/kovardin/getapp/app/modules/tracker/workflow"
@@ -29,7 +30,11 @@ import (
 
 func init() {
 	modules.Commands = append(modules.Commands, Command)
-	modules.Providers = append(modules.Providers, fx.Provide(
+	modules.Modules = append(modules.Modules, Tracker)
+}
+
+var Tracker = fx.Module("tracker",
+	fx.Provide(
 		New,
 		handlers.NewConversions,
 		database.NewRepository[models.Conversion],
@@ -42,9 +47,10 @@ func init() {
 		workflow.New,
 		yandex.New,
 		vkads.New,
-	))
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure), fx.Invoke(func(m *Module) {}))
-}
+	),
+	fx.Invoke(Configure),
+	fx.Invoke(func(m *Module) {}),
+)
 
 type Dashboard struct{}
 

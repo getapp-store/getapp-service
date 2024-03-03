@@ -22,15 +22,19 @@ import (
 )
 
 func init() {
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure))
 	modules.Commands = append(modules.Commands, Command)
-	modules.Providers = append(modules.Providers, fx.Provide(
+	modules.Modules = append(modules.Modules, Landings)
+}
+
+var Landings = fx.Module("landings",
+	fx.Provide(
 		New,
 		handlers.NewPages,
 		database.NewRepository[models.Landing],
 		database.NewRepository[models.Page],
-	))
-}
+	),
+	fx.Invoke(Configure),
+)
 
 func Configure(pb *presets.Builder, db *database.Database, module *Module, server *http.Server) {
 	lgs := pb.Model(&models.Landing{})

@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/qor5/admin/presets/gorm2op"
 	"math/rand"
 	"os"
 	"time"
 
 	"github.com/qor5/admin/presets"
+	"github.com/qor5/admin/presets/gorm2op"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -42,13 +42,12 @@ func main() {
 		&cli.Command{
 			Name: "server",
 			Action: func(c *cli.Context) error {
-				setup(c, append(
-					modules.Invokes,
+				setup(c, []fx.Option{
 					fx.Invoke(func(server *http.Server) {}),
 					fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 						return &fxevent.ZapLogger{Logger: log}
 					}),
-				)...).Run()
+				}...).Run()
 
 				return nil
 			},
@@ -99,7 +98,7 @@ func setup(c *cli.Context, opts ...fx.Option) *fx.App {
 		mail.New,
 		cadence.New,
 	))
-	opts = append(opts, modules.Providers...)
+	opts = append(opts, modules.Modules...)
 	opts = append(opts, fx.StartTimeout(time.Second*60))
 	opts = append(opts, fx.NopLogger)
 

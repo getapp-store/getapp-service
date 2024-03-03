@@ -26,15 +26,19 @@ import (
 
 func init() {
 	modules.Commands = append(modules.Commands, Command)
-	modules.Providers = append(modules.Providers, fx.Provide(
+	modules.Modules = append(modules.Modules, Admin)
+}
+
+var Admin = fx.Module("admin",
+	fx.Provide(
 		New,
 		Login,
 		database.NewRepository[models.Setting],
 		// dashboards
 		dashboards.NewHome,
-	))
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure))
-}
+	),
+	fx.Invoke(Configure),
+)
 
 func Login(pb *presets.Builder, database *database.Database) *login.Builder {
 	db := database.DB()

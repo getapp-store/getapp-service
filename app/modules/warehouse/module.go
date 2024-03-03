@@ -24,14 +24,18 @@ import (
 )
 
 func init() {
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure))
 	modules.Commands = append(modules.Commands, Command)
-	modules.Providers = append(modules.Providers, fx.Provide(
+	modules.Modules = append(modules.Modules, Warehouse)
+}
+
+var Warehouse = fx.Module("warehouse",
+	fx.Provide(
 		New,
 		handlers.NewItems,
 		database.NewRepository[models.Item],
-	))
-}
+	),
+	fx.Invoke(Configure),
+)
 
 func Configure(pb *presets.Builder, db *database.Database, module *Module, server *http.Server) {
 	items := pb.Model(&models.Item{})
