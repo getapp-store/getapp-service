@@ -6,19 +6,22 @@ import (
 	"go.uber.org/zap"
 
 	w "go.uber.org/cadence/workflow"
+	"ru/kovardin/getapp/app/modules/tracker/config"
 	"ru/kovardin/getapp/app/modules/tracker/workflow/vkads"
 	"ru/kovardin/getapp/app/modules/tracker/workflow/yandex"
 	"ru/kovardin/getapp/pkg/cadence"
 )
 
 type Workflow struct {
+	config  config.Config
 	cadence *cadence.Cadence
 	yandex  *yandex.Yandex
 	vkads   *vkads.Vkads
 }
 
-func New(cadence *cadence.Cadence, yandex *yandex.Yandex, vkads *vkads.Vkads) *Workflow {
+func New(config config.Config, cadence *cadence.Cadence, yandex *yandex.Yandex, vkads *vkads.Vkads) *Workflow {
 	workflow := &Workflow{
+		config:  config,
 		cadence: cadence,
 		yandex:  yandex,
 		vkads:   vkads,
@@ -39,10 +42,17 @@ func (wr *Workflow) Execute(ctx w.Context, name string) error {
 	}
 
 	ctx = w.WithActivityOptions(ctx, options)
-
 	log := w.GetLogger(ctx)
-	log.Info("tracker workflow started")
+
 	var result string
+
+	if !wr.config.Active {
+		result = "disabled"
+		log.Info("tracker workflow disabled", zap.String("result", result))
+		return nil
+	}
+
+	log.Info("tracker workflow started")
 
 	if err := w.ExecuteActivity(ctx, wr.yandex.Execute, name).Get(ctx, &result); err != nil {
 		log.Error("activity failed", zap.Error(err))

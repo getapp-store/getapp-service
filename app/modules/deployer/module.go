@@ -15,10 +15,16 @@ import (
 )
 
 func init() {
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure))
 	modules.Commands = append(modules.Commands, Command)
-	modules.Providers = append(modules.Providers, fx.Provide(New))
+	modules.Modules = append(modules.Modules, Deployer)
 }
+
+var Deployer = fx.Module("deployer",
+	fx.Provide(
+		New,
+	),
+	fx.Invoke(Configure),
+)
 
 type Module struct {
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"ru/kovardin/getapp/app/utils/admin/components"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/qor5/admin/presets"
@@ -23,12 +22,16 @@ import (
 	"ru/kovardin/getapp/app/modules/billing/models"
 	"ru/kovardin/getapp/app/servers/http"
 	"ru/kovardin/getapp/pkg/database"
+	"ru/kovardin/getapp/pkg/utils/admin/components"
 )
 
 func init() {
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure))
 	modules.Commands = append(modules.Commands, Command)
-	modules.Providers = append(modules.Providers, fx.Provide(
+	modules.Modules = append(modules.Modules, Billing)
+}
+
+var Billing = fx.Module("billing",
+	fx.Provide(
 		New,
 		handlers.NewConfirm,
 		handlers.NewPayments,
@@ -38,8 +41,9 @@ func init() {
 		database.NewRepository[models.Product],
 
 		auth.New,
-	))
-}
+	),
+	fx.Invoke(Configure),
+)
 
 func Configure(pb *presets.Builder, db *database.Database, module *Module, server *http.Server) {
 	products := pb.Model(&models.Product{})

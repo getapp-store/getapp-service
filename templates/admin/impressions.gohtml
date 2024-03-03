@@ -1,0 +1,75 @@
+{{define "impressions"}}
+    <div class="p-3">
+        <h3>Показы рекламы</h3>
+
+        <div id="impressions-chart" style="height: 300px; width:100%;"></div>
+
+        <script type="application/javascript">
+            document.addEventListener("DOMContentLoaded", (event) => {
+                var impressionsChart = echarts.init(document.getElementById('impressions-chart'));
+                window.addEventListener('resize', function () {
+                    impressionsChart.resize();
+                });
+
+                var option;
+
+                option = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'cross',
+                            label: {
+                                backgroundColor: '#6a7985'
+                            }
+                        }
+                    },
+                    legend: {
+                        data: [{{range .Metrics}} '{{.Name}}', {{end}}],
+                        orient: 'vertical',
+                        top: 'center',
+                        right: 0
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {}
+                        }
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '180',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: [
+                        {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: [{{range .Data}} '{{.Format "2006 Jan 02"}}', {{end}}]
+                        }
+                    ],
+                    yAxis: [
+                        {
+                            type: 'value'
+                        }
+                    ],
+                    series: [
+                        {{range .Metrics}}
+                        {
+                            name: '{{.Name}}',
+                            type: 'line',
+                            stack: 'Total',
+                            areaStyle: {},
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            data: [{{range .Data}} {{.}}, {{end}}]
+                        },
+                        {{end}}
+                    ]
+                };
+
+                option && impressionsChart.setOption(option);
+            });
+        </script>
+    </div>
+{{end}}

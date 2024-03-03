@@ -1,57 +1,60 @@
 package tracker
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log"
 	"os"
-	"sort"
-	"strings"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/qor5/admin/presets"
-	"github.com/qor5/ui/vuetify"
 	"github.com/qor5/ui/vuetifyx"
 	"github.com/qor5/web"
 	"github.com/theplant/htmlgo"
 	"github.com/urfave/cli/v2"
-	"github.com/wcharczuk/go-chart/v2"
 	"go.uber.org/fx"
 
 	"ru/kovardin/getapp/app/modules"
 	applications "ru/kovardin/getapp/app/modules/applications/models"
 	"ru/kovardin/getapp/app/modules/tracker/config"
+	"ru/kovardin/getapp/app/modules/tracker/dashboards"
 	"ru/kovardin/getapp/app/modules/tracker/handlers"
 	"ru/kovardin/getapp/app/modules/tracker/models"
 	"ru/kovardin/getapp/app/modules/tracker/workflow"
 	"ru/kovardin/getapp/app/modules/tracker/workflow/vkads"
 	"ru/kovardin/getapp/app/modules/tracker/workflow/yandex"
-	"ru/kovardin/getapp/app/servers/http"
+	server "ru/kovardin/getapp/app/servers/http"
 	"ru/kovardin/getapp/pkg/cadence"
 	"ru/kovardin/getapp/pkg/database"
 )
 
 func init() {
 	modules.Commands = append(modules.Commands, Command)
-	modules.Providers = append(modules.Providers, fx.Provide(
+	modules.Modules = append(modules.Modules, Tracker)
+}
+
+var Tracker = fx.Module("tracker",
+	fx.Provide(
 		New,
 		handlers.NewConversions,
 		database.NewRepository[models.Conversion],
 		database.NewRepository[models.Tracker],
 
+		// dashboards
+		dashboards.NewTracker,
+
 		// cadence
 		workflow.New,
 		yandex.New,
 		vkads.New,
-	))
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure), fx.Invoke(func(m *Module) {}))
-}
+	),
+	fx.Invoke(Configure),
+	fx.Invoke(func(m *Module) {}),
+)
 
 type Dashboard struct{}
 
-func Configure(pb *presets.Builder, db *database.Database, module *Module, server *http.Server) {
+func Configure(pb *presets.Builder, db *database.Database, module *Module, server *server.Server) {
 	tt := pb.Model(&models.Tracker{})
 	tt.Listing("ID", "Name", "ApplicationID", "YandexMetricaTracker", "VkTracker", "YandexToken", "Active", "CreatedAt").
 		Field("ApplicationID").
@@ -81,59 +84,14 @@ func Configure(pb *presets.Builder, db *database.Database, module *Module, serve
 
 	// dashboard
 	aa := pb.Model(&Dashboard{}).Label("Dashboard")
+
 	aa.Listing().PageFunc(func(ctx *web.EventContext) (r web.PageResponse, err error) {
-		// https://github.com/go-echarts/go-echarts
-		conversions := []models.Conversion{}
-		db.DB().Model(models.Conversion{}).Find(&conversions)
-
-		values := map[time.Time]float64{}
-
-		xvalues := []time.Time{}
-		yvalues := []float64{}
-
-		for _, conversion := range conversions {
-			x := conversion.CreatedAt.Truncate(24 * time.Hour)
-			y, _ := values[x]
-			values[x] = y + 1
-		}
-
-		for x, _ := range values {
-			xvalues = append(xvalues, x)
-		}
-
-		sort.Slice(xvalues, func(i, j int) bool {
-			return xvalues[i].Before(xvalues[j])
-		})
-
-		for _, y := range xvalues {
-			yvalues = append(yvalues, values[y])
-		}
-
-		graph := chart.Chart{
-			Series: []chart.Series{
-				chart.TimeSeries{
-					XValues: xvalues,
-					YValues: yvalues,
-				},
-			},
-		}
-
-		buffer := bytes.NewBuffer([]byte{})
-		if err = graph.Render(chart.SVG, buffer); err != nil {
-			return
-		}
-
-		r.Body = vuetify.VContainer(
-			vuetify.VRow(
-				htmlgo.Div(
-					htmlgo.Div(htmlgo.H2("Conversions")).Class("mt-2 col col-12"),
-					htmlgo.Div(
-						htmlgo.RawHTML(
-							strings.Replace(buffer.String(), `width="1024" height="1024"`, `width="100%" height="100%" viewBox="-85 -80 1200 1200"`, -1)),
-					).Style("height: 300px;"),
-				).Class("col col-6"),
-			),
-		)
+		r.Body = htmlgo.Div(
+			htmlgo.Iframe().
+				Src("/admin/tracker/dashboard").
+				Attr("width", "100%", "height", "100%", "frameborder", "no").
+				Style("transform-origin: left top; transform: scale(1, 1); pointer-events: none;"),
+		).Style("height: 100vh; width: 100%")
 
 		r.PageTitle = "Dashboard"
 
@@ -180,6 +138,7 @@ func Configure(pb *presets.Builder, db *database.Database, module *Module, serve
 	})
 
 	server.Routers(module)
+	server.Dashboaders(module)
 }
 
 func Command(setup func(*cli.Context, ...fx.Option) *fx.App) *cli.Command {
@@ -203,6 +162,7 @@ type Module struct {
 	conversions *handlers.Conversions
 	cadence     *cadence.Cadence
 	workflow    *workflow.Workflow
+	dashboard   *dashboards.Tracker
 }
 
 func New(
@@ -211,12 +171,14 @@ func New(
 	conversions *handlers.Conversions,
 	cadence *cadence.Cadence,
 	workflow *workflow.Workflow,
+	dashboard *dashboards.Tracker,
 ) *Module {
 	m := &Module{
 		config:      config,
 		conversions: conversions,
 		cadence:     cadence,
 		workflow:    workflow,
+		dashboard:   dashboard,
 	}
 
 	lc.Append(fx.Hook{
@@ -245,4 +207,8 @@ func (m *Module) Routes(r chi.Router) {
 	r.Route("/v1/fire", func(r chi.Router) {
 		r.Get("/", m.conversions.Fire)
 	})
+}
+
+func (m *Module) Dashboards(r chi.Router) {
+	r.Get("/tracker/dashboard", m.dashboard.Dashboard)
 }

@@ -23,16 +23,20 @@ import (
 )
 
 func init() {
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure))
 	modules.Commands = append(modules.Commands, Command)
-	modules.Providers = append(modules.Providers, fx.Provide(
+	modules.Modules = append(modules.Modules, Lokalize)
+}
+
+var Lokalize = fx.Module("lokalize",
+	fx.Provide(
 		New,
 		database.NewRepository[models.Language],
 		database.NewRepository[models.Phrase],
 		handlers.NewLanguages,
 		handlers.NewPhrases,
-	))
-}
+	),
+	fx.Invoke(Configure),
+)
 
 func Configure(pb *presets.Builder, db *database.Database, module *Module, server *http.Server) {
 	languages := pb.Model(&models.Language{})

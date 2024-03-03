@@ -28,16 +28,19 @@ import (
 	"ru/kovardin/getapp/app/modules/mediation/workflow/mytarget"
 	"ru/kovardin/getapp/app/modules/mediation/workflow/yandex"
 	"ru/kovardin/getapp/app/servers/http"
-	"ru/kovardin/getapp/app/utils/admin/components"
 	"ru/kovardin/getapp/pkg/cadence"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"
+	"ru/kovardin/getapp/pkg/utils/admin/components"
 )
 
 func init() {
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure), fx.Invoke(func(m *Module) {}))
 	modules.Commands = append(modules.Commands, Command)
-	modules.Providers = append(modules.Providers, fx.Provide(
+	modules.Modules = append(modules.Modules, Mediation)
+}
+
+var Mediation = fx.Module("mediation",
+	fx.Provide(
 		New,
 		// repos
 		database.NewRepository[models.Placement],
@@ -61,8 +64,10 @@ func init() {
 		yandex.New,
 		mytarget.New,
 		bigo.New,
-	))
-}
+	),
+	fx.Invoke(Configure),
+	fx.Invoke(func(m *Module) {}),
+)
 
 func Configure(pb *presets.Builder, db *database.Database, module *Module, server *http.Server) {
 	networks := pb.Model(&models.Network{})

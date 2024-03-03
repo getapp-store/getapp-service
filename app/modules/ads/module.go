@@ -7,8 +7,14 @@ import (
 )
 
 func init() {
-	modules.Providers = append(modules.Providers, fx.Provide(New))
+	modules.Modules = append(modules.Modules, Ads)
 }
+
+var Ads = fx.Module("ads",
+	fx.Provide(
+		New,
+	),
+)
 
 type Module struct {
 }

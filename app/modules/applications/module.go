@@ -17,12 +17,16 @@ import (
 
 func init() {
 	modules.Commands = append(modules.Commands, Command)
-	modules.Providers = append(modules.Providers, fx.Provide(
+	modules.Modules = append(modules.Modules, Applications)
+}
+
+var Applications = fx.Module("applications",
+	fx.Provide(
 		New,
 		database.NewRepository[models.Application],
-	))
-	modules.Invokes = append(modules.Invokes, fx.Invoke(Configure))
-}
+	),
+	fx.Invoke(Configure),
+)
 
 func Configure(pb *presets.Builder, db *database.Database, module *Module, server *http.Server) {
 	pb.Model(&models.Application{}).Listing("ID", "Name", "Bundle", "ApiToken", "VkAuthToken", "CreatedAt")
