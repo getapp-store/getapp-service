@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"ru/kovardin/getapp/pkg/utils/admin/components"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -28,7 +29,6 @@ import (
 	"ru/kovardin/getapp/app/modules/mediation/workflow/mytarget"
 	"ru/kovardin/getapp/app/modules/mediation/workflow/yandex"
 	"ru/kovardin/getapp/app/servers/http"
-	"ru/kovardin/getapp/app/utils/admin/components"
 	"ru/kovardin/getapp/pkg/cadence"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"

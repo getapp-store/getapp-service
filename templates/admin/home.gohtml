@@ -13,23 +13,23 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col">
+                {{ template "impressions" .Impressions }}
+            </div>
+            <div class="col">
+                {{ template "ecpms" .Ecpms }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
                 {{ template "conversions" .Conversions }}
             </div>
-            <div class="col">
-                {{ template "impressions" }}
-            </div>
         </div>
         <div class="row">
             <div class="col">
-                {{ template "ecpms" }}
-            </div>
-        </div>
-        <div class="row">
-            <div class="col">
-                {{ template "payments" }}
+{{/*                {{ template "payments" }}*/}}
             </div>
             <div class="col">
-                {{ template "subscriptions" }}
+{{/*                {{ template "subscriptions" }}*/}}
             </div>
         </div>
     </div>

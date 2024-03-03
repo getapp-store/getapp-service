@@ -1,7 +1,6 @@
 package dashboards
 
 import (
-	"fmt"
 	"go.uber.org/zap"
 	"html/template"
 	"net/http"
@@ -10,27 +9,25 @@ import (
 	tracker "ru/kovardin/getapp/app/modules/tracker/models"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"
+	"ru/kovardin/getapp/pkg/utils/chart"
 )
 
 type Home struct {
-	log         *logger.Logger
-	templates   map[string]*template.Template
-	conversions *database.Repository[tracker.Conversion]
-	trackers    *database.Repository[tracker.Tracker]
-	database    *database.Database
+	log       *logger.Logger
+	templates map[string]*template.Template
+	trackers  *database.Repository[tracker.Tracker]
+	database  *database.Database
 }
 
 func NewHome(
 	log *logger.Logger,
 	trackers *database.Repository[tracker.Tracker],
-	conversions *database.Repository[tracker.Conversion],
 	database *database.Database,
 ) *Home {
 	return &Home{
-		log:         log,
-		trackers:    trackers,
-		conversions: conversions,
-		database:    database,
+		log:      log,
+		trackers: trackers,
+		database: database,
 		templates: map[string]*template.Template{
 			"home": template.Must(template.ParseFiles(
 				"templates/admin/home.gohtml",
@@ -45,20 +42,8 @@ func NewHome(
 }
 
 type Data struct {
-	Trackers []Tracker
-	Data     []time.Time
-}
-
-type Tracker struct {
-	Name string
-	Data []int
-}
-
-type Row struct {
-	Name      string
-	TrackerId int
-	Date      time.Time
-	Cnt       int
+	Metrics chart.Mtx
+	Data    chart.Dtx
 }
 
 // https://apache.github.io/echarts-handbook/en/basics/download
@@ -67,69 +52,81 @@ func (h *Home) Dashboard(w http.ResponseWriter, r *http.Request) {
 	// trackers conversions
 
 	end := time.Now()
-	start := end.AddDate(0, -2, 0)
 
-	rows := []Row{}
+	// prepare data for graphs
+	if err := h.templates["home"].ExecuteTemplate(w, "home", struct {
+		Conversions Data
+		Impressions Data
+		Ecpms       Data
+	}{
+		Conversions: h.conversions(end.AddDate(0, -1, 0), end),
+		Impressions: h.impressions(end.AddDate(0, -1, 0), end),
+		Ecpms:       h.ecpms(end.Add(-time.Hour*24*2), end),
+	}); err != nil {
+		h.log.Error("pay error", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (h *Home) conversions(start, end time.Time) Data {
+	rows := []chart.Item{}
 
 	h.database.DB().Debug().Table("conversions").
-		Select("t.name as name, tracker_id, date(conversions.created_at) as date, count(*) as cnt").
+		Select("t.name as name, tracker_id as id, date(conversions.created_at) as date, count(*) as value").
 		Joins("LEFT JOIN trackers t on t.id = conversions.tracker_id").
 		Where("date_trunc('day', conversions.created_at)::date > ? AND date_trunc('day', conversions.created_at)::date <= ?", start, end).
 		Group("t.name, tracker_id, date(conversions.created_at)").
 		Order("date(conversions.created_at) DESC").
 		Scan(&rows)
 
-	// prepare xaxis
-	dates := []time.Time{}
-	for d := start; d.After(end) == false; d = d.AddDate(0, 0, 1) {
-		dates = append(dates, time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC))
+	dates := chart.Dates(start, end)
+	index := chart.Index(rows)
+	metrics := chart.Metrics(dates, index)
+
+	return Data{
+		Metrics: metrics,
+		Data:    dates,
 	}
+}
 
-	for _, d := range dates {
-		fmt.Println(d)
+func (h *Home) impressions(start, end time.Time) Data {
+	rows := []chart.Item{}
+
+	h.database.DB().Debug().Table("impressions").
+		Select("u.name as name, unit_id as id, date(impressions.created_at) as date, count(*) as value").
+		Joins("LEFT JOIN units u on u.id = impressions.unit_id").
+		Where("date_trunc('day', impressions.created_at)::date > ? AND date_trunc('day', impressions.created_at)::date <= ?", start, end).
+		Group("u.name, unit_id, date(impressions.created_at)").
+		Order("date(impressions.created_at) DESC").
+		Scan(&rows)
+
+	dates := chart.Dates(start, end)
+	index := chart.Index(rows)
+	metrics := chart.Metrics(dates, index)
+
+	return Data{
+		Metrics: metrics,
+		Data:    dates,
 	}
+}
 
-	// prepare index
-	index := map[string]map[time.Time]int{}
-	for _, r := range rows {
-		t, ok := index[r.Name]
-		if !ok {
-			t = map[time.Time]int{}
-		}
+func (h *Home) ecpms(start, end time.Time) Data {
+	rows := []chart.Item{}
 
-		t[r.Date] = r.Cnt
-		index[r.Name] = t
-	}
+	h.database.DB().Debug().Table("cpms").
+		Select("u.name as name, unit_id as id, date_trunc('hour', cpms.created_at)::timestamp as date, sum(amount) as value").
+		Joins("LEFT JOIN units u on u.id = cpms.unit_id").
+		Where("date_trunc('day', cpms.created_at)::date > ? AND date_trunc('hour', cpms.created_at)::date <= ? AND amount > 0", start, end).
+		Group("u.name, unit_id, date_trunc('hour', cpms.created_at)").
+		Order("date_trunc('hour', cpms.created_at) DESC").
+		Scan(&rows)
 
-	// prepare data
-	trackers := []Tracker{}
-	for k, v := range index {
-		tracker := Tracker{
-			Name: k,
-			Data: []int{},
-		}
+	dates := chart.Hours(start, end)
+	index := chart.Index(rows)
+	metrics := chart.Metrics(dates, index)
 
-		for _, d := range dates {
-			val := v[d]
-
-			tracker.Data = append(tracker.Data, val)
-		}
-
-		trackers = append(trackers, tracker)
-	}
-
-	data := Data{
-		Trackers: trackers,
-		Data:     dates,
-	}
-
-	// prepare data for graps
-	if err := h.templates["home"].ExecuteTemplate(w, "home", struct {
-		Conversions Data
-	}{
-		Conversions: data,
-	}); err != nil {
-		h.log.Error("pay error", zap.Error(err))
-		w.WriteHeader(http.StatusInternalServerError)
+	return Data{
+		Metrics: metrics,
+		Data:    dates,
 	}
 }

@@ -24,7 +24,7 @@
                         }
                     },
                     legend: {
-                        data: [{{range .Trackers}} '{{.Name}}', {{end}}],
+                        data: [{{range .Metrics}} '{{.Name}}', {{end}}],
                         orient: 'vertical',
                         top: 'center',
                         right: 0
@@ -36,7 +36,7 @@
                     },
                     grid: {
                         left: '3%',
-                        right: '120px',
+                        right: '180px',
                         bottom: '3%',
                         containLabel: true
                     },
@@ -53,7 +53,7 @@
                         }
                     ],
                     series: [
-                        {{range .Trackers}}
+                        {{range .Metrics}}
                         {
                             name: '{{.Name}}',
                             type: 'line',

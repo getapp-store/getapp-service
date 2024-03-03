@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"ru/kovardin/getapp/app/utils/admin/components"
+	"ru/kovardin/getapp/pkg/utils/admin/components"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/qor5/admin/presets"

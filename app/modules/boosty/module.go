@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"ru/kovardin/getapp/pkg/utils/admin/components"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -29,7 +30,6 @@ import (
 	"ru/kovardin/getapp/app/modules/boosty/workflow"
 	"ru/kovardin/getapp/app/modules/boosty/workflow/parser"
 	"ru/kovardin/getapp/app/servers/http"
-	"ru/kovardin/getapp/app/utils/admin/components"
 	"ru/kovardin/getapp/pkg/cadence"
 	"ru/kovardin/getapp/pkg/database"
 	"ru/kovardin/getapp/pkg/logger"
