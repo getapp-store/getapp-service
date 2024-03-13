@@ -38,4 +38,10 @@ tasks:
       - scp ./templates/billing/base.gohtml {{ .SERVER }}:/opt/getapp/templates/billing/
       - scp ./templates/billing/purchase.gohtml {{ .SERVER }}:/opt/getapp/templates/billing/
       - scp ./templates/billing/success.gohtml {{ .SERVER }}:/opt/getapp/templates/billing/
+      - scp ./templates/admin/home.gohtml {{ .SERVER }}:/opt/getapp/templates/admin/
+      - scp ./templates/admin/conversions.gohtml {{ .SERVER }}:/opt/getapp/templates/admin/
+      - scp ./templates/admin/impressions.gohtml {{ .SERVER }}:/opt/getapp/templates/admin/
+      - scp ./templates/admin/ecpms.gohtml {{ .SERVER }}:/opt/getapp/templates/admin/
+      - scp ./templates/admin/payments.gohtml {{ .SERVER }}:/opt/getapp/templates/admin/
+      - scp ./templates/admin/subscriptions.gohtml {{ .SERVER }}:/opt/getapp/templates/admin/
       - sup {{ .SERVER }} start

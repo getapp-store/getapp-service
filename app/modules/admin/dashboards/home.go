@@ -1,10 +1,11 @@
 package dashboards
 
 import (
-	"go.uber.org/zap"
 	"html/template"
 	"net/http"
 	"time"
+
+	"go.uber.org/zap"
 
 	tracker "ru/kovardin/getapp/app/modules/tracker/models"
 	"ru/kovardin/getapp/pkg/database"

@@ -50,22 +50,24 @@ func (p *Parser) Execute(ctx context.Context, name string) (string, error) {
 		p.log.Error("error on getting blogs", zap.Error(err))
 	}
 
+	errs := []error{}
 	for _, b := range bb {
-		p.process(b)
+		if err := p.process(b); err != nil {
+			errs = append(errs, err)
+		}
 	}
 
 	p.log.Info("finished boosty parser activity")
 
-	return "parsed boosty", nil
+	return fmt.Sprintf("parsed boosty: %+v", errs), nil
 }
 
-func (p *Parser) process(b models.Blog) {
+func (p *Parser) process(b models.Blog) error {
 	p.log.Info("parse blog", zap.String("blog", b.Url), zap.String("token", b.Token))
 
 	token := auth.Info{}
 	if err := json.Unmarshal([]byte(b.Token), &token); err != nil {
-		p.log.Error("error on parse boosty token", zap.Error(err))
-		return
+		return fmt.Errorf("error on parse boosty token: %w", err)
 	}
 
 	a, err := auth.New(
@@ -83,20 +85,17 @@ func (p *Parser) process(b models.Blog) {
 		}),
 	)
 	if err != nil {
-		p.log.Error("error on prepare boosty lib auth", zap.Error(err))
-		return
+		return fmt.Errorf("error on prepare boosty lib auth: %w", err)
 	}
 
 	rq, err := request.New(request.WithAuth(a))
 	if err != nil {
-		p.log.Error("error on prepare boosty lib request", zap.Error(err))
-		return
+		return fmt.Errorf("error on prepare boosty lib request: %w", err)
 	}
 
 	api, err := boosty.New(b.Name, boosty.WithRequest(rq))
 	if err != nil {
-		p.log.Error("error on prepare boosty lib", zap.Error(err))
-		return
+		return fmt.Errorf("error on prepare boosty lib: %w", err)
 	}
 
 	v := url.Values{}
@@ -108,8 +107,7 @@ func (p *Parser) process(b models.Blog) {
 	// load subscriptions
 	subscriptions, err := api.Subscriptions(v)
 	if err != nil {
-		p.log.Error("error on fetch subscriptions", zap.String("blog", b.Name), zap.Error(err))
-		return
+		return fmt.Errorf("error on fetch subscriptions blog %s: %w", b.Name, err)
 	}
 
 	// save to db
@@ -122,8 +120,7 @@ func (p *Parser) process(b models.Blog) {
 			},
 		})
 		if err != nil {
-			p.log.Error("error on get subscription from db", zap.Int("external", s.ID), zap.Error(err))
-			continue
+			return fmt.Errorf("error on get subscription from db external %d: %w", s.ID, err)
 		}
 
 		model.External = s.ID
@@ -137,22 +134,19 @@ func (p *Parser) process(b models.Blog) {
 			model.Active = !(s.Deleted || s.IsArchived)
 
 			if err := p.subscriptions.Create(&model); err != nil {
-				p.log.Error("error on create subscription in db", zap.Int("external", s.ID), zap.Error(err))
-				continue
+				return fmt.Errorf("error on create subscription in db external %d: %w", s.ID, err)
 			}
 		} else {
 			// update exists
 			if err := p.subscriptions.Save(&model); err != nil {
-				p.log.Error("error on save subscription in db", zap.Int("external", s.ID), zap.Error(err))
-				continue
+				return fmt.Errorf("error on save subscription in db external %d: %w", s.ID, err)
 			}
 		}
 	}
 
 	current, err := api.Current()
 	if err != nil {
-		p.log.Error("error on get stats", zap.String("blog", b.Name), zap.Error(err))
-		return
+		return fmt.Errorf("error on get stats blog %s: %w", b.Name, err)
 	}
 
 	v = url.Values{}
@@ -164,8 +158,7 @@ func (p *Parser) process(b models.Blog) {
 	// fetch subscribers
 	subscribers, err := api.Subscribers(v)
 	if err != nil {
-		p.log.Error("error on fetch subscribers", zap.String("blog", b.Name), zap.Error(err))
-		return
+		return fmt.Errorf("error on fetch subscribers blog %s: %w", b.Name, err)
 	}
 
 	// save to db
@@ -176,8 +169,7 @@ func (p *Parser) process(b models.Blog) {
 			},
 		})
 		if err != nil {
-			p.log.Error("error on get subscriber from db", zap.Int("external", s.ID), zap.Error(err))
-			continue
+			return fmt.Errorf("error on get subscriber from db external %d: %w", s.ID, err)
 		}
 
 		subscription, err := p.subscriptions.First(database.Condition{
@@ -186,8 +178,7 @@ func (p *Parser) process(b models.Blog) {
 			},
 		})
 		if err != nil {
-			p.log.Error("error on get subscription by subscriber from db", zap.Int("external", s.ID), zap.Error(err))
-			continue
+			return fmt.Errorf("error on get subscription by subscriber from db external %d: %w", s.ID, err)
 		}
 
 		model.External = s.ID
@@ -203,15 +194,15 @@ func (p *Parser) process(b models.Blog) {
 			model.Active = s.Subscribed
 
 			if err := p.subscribers.Create(&model); err != nil {
-				p.log.Error("error on create subscriber in db", zap.Int("external", s.ID), zap.Error(err))
-				continue
+				return fmt.Errorf("error on create subscriber in db external %d: %w", s.ID, err)
 			}
 		} else {
 			// update exists
 			if err := p.subscribers.Save(&model); err != nil {
-				p.log.Error("error on save subscriber in db", zap.Int("external", s.ID), zap.Error(err))
-				continue
+				return fmt.Errorf("error on save subscriber in db external %d: %w", s.ID, err)
 			}
 		}
 	}
+
+	return nil
 }
