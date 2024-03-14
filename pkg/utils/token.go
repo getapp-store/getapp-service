@@ -23,7 +23,10 @@ func TokenFromHeader(r *http.Request, key string) string {
 
 func TokenFromParams(r *http.Request, key string) string {
 	// Get token from authorization header.
-	var token = r.URL.Query().Get(strings.ToLower(key))
+	var token = r.URL.Query().Get(key)
+	if token == "" {
+		token = r.URL.Query().Get(strings.ToLower(key))
+	}
 	if token == "" {
 		token = chi.URLParam(r, key)
 	}

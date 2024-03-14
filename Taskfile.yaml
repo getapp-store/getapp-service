@@ -11,6 +11,7 @@ tasks:
   build:
     cmds:
       - mkdir -p build/bin/
+#     GOPROXY=direct
       - docker run -v `pwd`/:/go/src/getapp -w /go/src/getapp -e "VERSION=0.0.1" -i golang:1.21.1 /bin/sh -c "GOOS=linux GOARCH=amd64 go build -v -o build/bin/getapp -ldflags '-v -w -s -linkmode auto -extldflags \"-static\" -X main.Version=0.0.1' ./cmd/getapp"
 
   deploy:

@@ -145,8 +145,9 @@ func (m *Mail) Send(w http.ResponseWriter, r *http.Request) {
 		Text:    fmt.Sprintf(textTemplate, pin.Code),
 		Html:    fmt.Sprintf(htmlTemplate, pin.Code),
 	}); err != nil {
-		m.log.Error("error on parse mail form", zap.Error(err))
+		m.log.Error("error on send mail", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
+		// todo error template
 		return
 	}
 

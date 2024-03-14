@@ -50,8 +50,16 @@ func (s *Repository[T]) Save(item *T) error {
 	return s.db.DB().Save(item).Error
 }
 
-func (s *Repository[T]) Update(item *T, field, from, to string) error {
-	return s.db.DB().Model(item).Update(field, to).Where(field+" = ?", from).Error
+func (s *Repository[T]) Switch(item *T, field, from, to string) error {
+	return s.db.DB().Transaction(func(tx *gorm.DB) error {
+		return s.db.DB().Model(item).Where(field+" = ?", from).Update(field, to).Error
+	})
+}
+
+func (s *Repository[T]) Update(item *T, field, to string, id uint) error {
+	return s.db.DB().Transaction(func(tx *gorm.DB) error {
+		return s.db.DB().Model(item).Where("id = ?", id).Update(field, to).Error
+	})
 }
 
 func (s *Repository[T]) Delete(id int) error {

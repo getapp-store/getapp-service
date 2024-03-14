@@ -103,25 +103,7 @@ func (c *Confirm) Hook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payment, err := c.payments.First(database.Condition{
-		In: map[string]any{
-			"id": payload.Payment,
-		},
-	})
-	if err != nil {
-		c.log.Error("error on get payment from db", zap.Error(err))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if payment.ID == 0 {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	payment.Status = models.PaymentStatusConfirm
-
-	if err := c.payments.Save(&payment); err != nil {
+	if err := c.payments.Update(&models.Payment{}, "status", models.PaymentStatusConfirm, payload.Payment); err != nil {
 		c.log.Error("error on update payment", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return

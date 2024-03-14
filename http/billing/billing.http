@@ -20,3 +20,10 @@ X-User-Key: Bearer {{user}}
 GET {{host}}/v1/billing/1/payments/65
 X-User-Key: Bearer {{user}}
 
+
+### confitm
+
+POST {{host}}/v1/billing/confirm?x-app-key={{app-key}}
+Content-Type: application/x-www-form-urlencoded
+
+notification_type=card-incoming&zip=&bill_id=&amount=48.50&firstname=&codepro=false&withdraw_amount=50.00&city=&unaccepted=false&label=eyJwYXltZW50Ijo5M30%3D&building=&lastname=&datetime=2024-03-14T15%3A37%3A12Z&suite=&sender=&phone=&sha1_hash=c02eb9ea5d9a28b8d8bbd006f1defe485f5abe92&street=&flat=&fathersname=&operation_label=2d852d57-0011-5000-a000-1acc3374f441&operation_id=763745832019579096&currency=643&email=

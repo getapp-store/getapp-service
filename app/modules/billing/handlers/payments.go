@@ -302,7 +302,7 @@ func (p *Payments) Success(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := p.payments.Update(&payment, "status", models.PaymentStatusCreated, models.PaymentStatusSuccess); err != nil {
+	if err := p.payments.Switch(&payment, "status", models.PaymentStatusCreated, models.PaymentStatusSuccess); err != nil {
 		p.log.Error("cant update status", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -338,6 +338,9 @@ func (p *Payments) Payment(w http.ResponseWriter, r *http.Request) {
 	payment, err := p.payments.First(database.Condition{
 		In: map[string]any{
 			"id": paymentId,
+		},
+		Preload: []string{
+			"Product",
 		},
 	})
 	if err != nil {
