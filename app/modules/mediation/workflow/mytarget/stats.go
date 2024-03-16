@@ -34,9 +34,9 @@ type Data struct {
 	Amount           string  `json:"amount"`
 	Responses        int     `json:"responses"`
 	Cpm              string  `json:"cpm"`
-	Ctr              int     `json:"ctr"`
+	Ctr              float64 `json:"ctr"`
 	FillRate         float64 `json:"fill_rate"`
 	ShowRate         float64 `json:"show_rate"`
-	Vtr              int     `json:"vtr"`
-	Vr               int     `json:"vr"`
+	Vtr              float64 `json:"vtr"`
+	Vr               float64 `json:"vr"`
 }

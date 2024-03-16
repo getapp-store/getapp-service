@@ -72,7 +72,7 @@ func (h *Home) Dashboard(w http.ResponseWriter, r *http.Request) {
 func (h *Home) conversions(start, end time.Time) Data {
 	rows := []chart.Item{}
 
-	h.database.DB().Debug().Table("conversions").
+	h.database.DB().Table("conversions").
 		Select("t.name as name, tracker_id as id, date(conversions.created_at) as date, count(*) as value").
 		Joins("LEFT JOIN trackers t on t.id = conversions.tracker_id").
 		Where("date_trunc('day', conversions.created_at)::date > ? AND date_trunc('day', conversions.created_at)::date <= ?", start, end).
@@ -93,7 +93,7 @@ func (h *Home) conversions(start, end time.Time) Data {
 func (h *Home) impressions(start, end time.Time) Data {
 	rows := []chart.Item{}
 
-	h.database.DB().Debug().Table("impressions").
+	h.database.DB().Table("impressions").
 		Select("u.name as name, unit_id as id, date(impressions.created_at) as date, count(*) as value").
 		Joins("LEFT JOIN units u on u.id = impressions.unit_id").
 		Where("date_trunc('day', impressions.created_at)::date > ? AND date_trunc('day', impressions.created_at)::date <= ?", start, end).
@@ -114,7 +114,7 @@ func (h *Home) impressions(start, end time.Time) Data {
 func (h *Home) ecpms(start, end time.Time) Data {
 	rows := []chart.Item{}
 
-	h.database.DB().Debug().Table("cpms").
+	h.database.DB().Table("cpms").
 		Select("u.name as name, unit_id as id, date_trunc('hour', cpms.created_at)::timestamp as date, sum(amount) as value").
 		Joins("LEFT JOIN units u on u.id = cpms.unit_id").
 		Where("date_trunc('day', cpms.created_at)::date > ? AND date_trunc('hour', cpms.created_at)::date <= ? AND amount > 0", start, end).
