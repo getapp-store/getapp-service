@@ -1,0 +1,20 @@
+
+### Дерево статистики
+GET https://partner2.yandex.ru/api/statistics2/tree?lang=en&pretty=1&stat_type=main
+Authorization: OAuth {{yandex}}
+Accept: application/json
+Content-Type: application/json
+
+### Стата по приложению
+GET https://partner2.yandex.ru/api/statistics2/get.json?currency=USD&stat_type=main&lang=ru&dimension_field=date|day&entity_field=complex_block_id&field=impressions&field=partner_wo_nds&field=ecpm_partner_wo_nds&period=2024-02-17&period=2024-02-17&limits={"limit":200,"offset":0}&order_by=[{"field":"date","dir":"asc"}]&filter=["complex_block_id", "=", "R-M-2581097-7"]
+Authorization: OAuth {{yandex}}
+Accept: application/json
+
+###
+GET /api/statistics2/get.json?currency=USD&stat_type=main&lang=ru&dimension_field=date|day&entity_field=complex_block_id&field=impressions&field=partner_wo_nds&field=ecpm_partner_wo_nds&period=2024-02-17&period=2024-02-17&limits={"limit":200,"offset":0}&order_by=[{"field":"date","dir":"asc"}]&filter=["complex_block_id", "=", "R-M-2581097-8"] HTTP/1.1
+Host: partner2.yandex.ru
+Authorization: OAuth {{yandex}}
+
+###
+GET https://partner2.yandex.ru/api/statistics2/get.json?currency=USD&stat_type=main&lang=ru&dimension_field=date|day&entity_field=complex_block_id&field=impressions&field=partner_wo_nds&field=ecpm_partner_wo_nds&period=2024-02-17&period=2024-02-17&limits={"limit":200,"offset":0}&order_by=[{"field":"date","dir":"asc"}]&filter=["complex_block_id", "=", "R-M-2581097-8"]
+Authorization: OAuth {{yandex}}
